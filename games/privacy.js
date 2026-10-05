@@ -579,7 +579,7 @@
         const pairKey = lo + "-" + hi + "-" + key + "-" + x.qn;
         if (x.pairs.includes(pairKey)) continue; x.pairs.push(pairKey);
         out(`Mallory soustrait : ${fx(bb.v, 1)} − ${fx(a.v, 1)} = ${fx(D, 1)}. Elle cherche à savoir si ${w.nom} (seul${w.sexe === "F" ? "e" : ""} admis${w.sexe === "F" ? "e" : ""} ${lo + 1 === hi ? "le jour " + hi : "entre les jours " + (lo + 1) + " et " + hi}) a ${q.mal}. Si l'écart dépasse 0,5, elle répondra « oui ».`, "sys");
-        out(`Son pari : « ${D > 0.5 ? "oui" : "non"} » : c'est ${(D > 0.5) === truth ? "juste" : "faux"} cette fois, mais avec ε = ${fx(e, 3)} par requête son taux de réussite moyen n'est que de ${pct(atkAcc(e))} (pile ou face = 50 %). Garantie théorique pour ${fx(tot, 3)} de budget dépensé : au plus ${pct(boundAcc(tot))}.`, e <= 1 ? "ok" : "err");
+        out(`Son pari : « ${D > 0.5 ? "oui" : "non"} » : c'est ${(D > 0.5) === truth ? "juste" : "faux"} cette fois, mais avec ε = ${fx(e, 3)} par requête son taux de réussite moyen est de ${pct(atkAcc(e))} (pile ou face = 50 %). Garantie théorique pour ${fx(tot, 3)} de budget dépensé : au plus ${pct(boundAcc(tot))}.`, e <= 1 ? "ok" : "err");
         if (e <= 1) { if (!x.dpAtk) { x.dpAtk = true; note("dp"); fig("laplace"); say("Docteure Morel", "Elle en est réduite à parier. Et ce n'est pas du flou : c'est un calcul."); } }
         else out("ε est encore trop généreux : le bruit est faible et l'attaque réussit presque à tous les coups. Baisse ε (`epsilon 0.5`).", "err");
         return;
@@ -622,7 +622,7 @@
     if (!x.dp) { out("Active d'abord le mode bruité : `activer bruit`.", "sys"); return; }
     const v = raw ? parseFloat(raw[0]) : NaN;
     if (!(v >= 0.01 && v <= 100)) { out("ε doit être compris entre 0,01 et 100 : `epsilon 0.5`.", "err"); return; }
-    x.eps = v;
+    x.eps = v; x.qdp = [];
     out(`ε = ${fx(v, 3)} par requête : bruit d'échelle 1/ε = ${fx(1 / v, 2)} pour un comptage. Avec un budget de ${BUDGET0}, tu disposes d'environ ${Math.floor(BUDGET0 / v + 1e-9)} requête(s).`, "ok");
     if (v > 1) out("C'est plutôt généreux : peu de bruit, peu de protection. Voyons ce que Mallory en tire.", "sys");
     if (!x.shownLap) { x.shownLap = true; fig("laplace"); }
@@ -654,7 +654,7 @@
     if (!(v >= 0)) { out("Combien d'années ? `conservation 5`", "err"); return; }
     if (v < 3) say("Octave", `${v} an${v > 1 ? "s" : ""} ? Le projet dure 3 ans : il faut pouvoir publier et justifier les résultats. Trop court.`);
     else if (v > 5) say("Octave", `${v} ans ? Rien dans la finalité ne justifie de garder au-delà de 3 ans de projet et 2 ans d'archivage de vérification. Au-delà, on supprime ou on anonymise vraiment.`);
-    else { x.keep = true; out(`Durée de conservation fixée à ${v} ans, avec suppression automatique à l'échéance, inscrite au registre.`, "ok"); say("Octave", "Voilà une durée liée à la finalité, décidée avant de collecter. Passons aux droits : Alice t'attend."); }
+    else { x.keep = true; x.keepYears = v; out(`Durée de conservation fixée à ${v} ans, avec suppression automatique à l'échéance, inscrite au registre.`, "ok"); say("Octave", "Voilà une durée liée à la finalité, décidée avant de collecter. Passons aux droits : Alice t'attend."); }
   }
   function accorder(c) {
     const x = F(), t = toks(c);
@@ -663,10 +663,13 @@
     const a = t.find(w => /^(acces|effacement|efface|oubli)/.test(w));
     if (!a) { out("Accorder quoi ? `accorder acces` ou `accorder effacement`.", "err"); return; }
     const al = BASE[ALICE - 1];
-    if (/^acces/.test(a)) {
+    if (/^acces/.test(a) && x.erased.includes(ALICE)) {
+      x.accAcc = true;
+      out("Droit d'accès : la ligne d'Alice a déjà été effacée de la base de recherche. L'hôpital lui confirme par écrit ce qui a été supprimé et ce qui reste dans son dossier de soins (que l'effacement de la recherche ne touche pas).", "ok");
+    } else if (/^acces/.test(a)) {
       x.accAcc = true;
       out("Droit d'accès : Alice reçoit une copie de ce que l'hôpital détient sur elle, et la finalité du traitement :", "ok");
-      code(`${al.nom} · ${al.naissance} · ${al.cp} · ${al.sexe}\ndiagnostic : ${al.maladie} · séjour ${al.duree} j\nfinalité : recherche sur la durée de séjour\nconservation : 5 ans`);
+      code(`${al.nom} · ${al.naissance} · ${al.cp} · ${al.sexe}\ndiagnostic : ${al.maladie} · séjour ${al.duree} j\nfinalité : recherche sur la durée de séjour\nconservation : ${x.keepYears} ans`);
       say("Alice", "Je vois ce que vous avez. Maintenant, je voudrais que vous le retiriez de la base de recherche.");
     } else {
       if (!x.erased.includes(ALICE)) x.erased.push(ALICE);

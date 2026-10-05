@@ -306,6 +306,7 @@
     const x = F();
     const t = norm(c.rawArg);
     const nn = nums(c.rawArg);
+    if (!x.counted) { out("Pas encore : fais d'abord l'inventaire des points (`tester`, `lister`, puis `dire ‹nombre›`).", "sys"); return; }
     if (!x.addDone || !x.dblDone) {
       const isAdd = !x.addDone;
       const P = isAdd ? addTask().P : [3, 1], Q = isAdd ? addTask().Q : [3, 1];
@@ -712,10 +713,10 @@
       // courbe réelle y² = x³ − x + 1 : illustration continue de la règle de la sécante
       const f3 = u => u * u * u - u + 1, sx = u => 62 + (u + 1.5) * 66, sy = v => 130 - v * 34;
       let up = [], lo = [];
-      for (let u = -1.3247; u <= 2.4; u += 0.04) { const v = Math.sqrt(Math.max(0, f3(u))); up.push(`${sx(u).toFixed(1)},${sy(v).toFixed(1)}`); lo.push(`${sx(u).toFixed(1)},${sy(-v).toFixed(1)}`); }
+      for (let u = -1.3247; u <= 2.2; u += 0.04) { const v = Math.sqrt(Math.max(0, f3(u))); up.push(`${sx(u).toFixed(1)},${sy(v).toFixed(1)}`); lo.push(`${sx(u).toFixed(1)},${sy(-v).toFixed(1)}`); }
       const P = [-1, 1], Q = [2, -Math.sqrt(7)], lam = (Q[1] - P[1]) / (Q[0] - P[0]);
       const x3 = lam * lam - P[0] - Q[0], yl = u => P[1] + lam * (u - P[0]), T3 = [x3, yl(x3)], Rr = [x3, -T3[1]];
-      let s = `<polyline points="${up.concat(lo.reverse()).join(" ")}" class="f-ln" fill="none"/>`;
+      let s = `<polyline points="${lo.reverse().concat(up).join(" ")}" class="f-ln" fill="none"/>`;
       s += `<line x1="${sx(-1.35)}" y1="${sy(yl(-1.35))}" x2="${sx(2.2)}" y2="${sy(yl(2.2))}" class="f-ln f-pub"/>`;
       s += `<line x1="${sx(x3)}" y1="${sy(T3[1])}" x2="${sx(x3)}" y2="${sy(Rr[1])}" class="f-ln f-dash"/>`;
       const dot = (p, col, hollow) => `<circle cx="${sx(p[0]).toFixed(1)}" cy="${sy(p[1]).toFixed(1)}" r="5.5" ${hollow ? `fill="var(--bg)" stroke="${col}" stroke-width="2"` : `fill="${col}"`}/>`;

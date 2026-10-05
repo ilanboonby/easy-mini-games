@@ -354,7 +354,7 @@ Corrections : \`corriger privilege|utilisateur|lecture-seule|capacites ‹liste 
       const use = BASE_USE + LEAK_STEP * t, free = HOST_MEM - OTHERS_MEM - use;
       let st;
       if (L !== null && use > L) { st = "limite du cgroup atteinte : « billets » est arrêté seul"; ended = true; }
-      else if (free < 0) { st = "mémoire de l'hôte épuisée : le noyau tue au hasard du pire…"; ended = true; }
+      else if (free < 0) { st = "mémoire de l'hôte épuisée : le tueur de mémoire intervient"; ended = true; }
       else if (free < 150) { st = "pression : l'hôte swappe, base et paiement ralentissent"; press++; }
       else st = "ok";
       rows.push(`${String(t).padEnd(4)}${String(use).padEnd(10)}${String(Math.max(free, 0)).padEnd(13)}${st}`);
@@ -602,7 +602,7 @@ Corrections : \`corriger privilege|utilisateur|lecture-seule|capacites ‹liste 
       if (!ok) { out("REFUSÉ par la douane : signature absente ou invalide pour ce digest.", "err"); return; }
     }
     out(`Image tirée : ${reg}/billets${tag ? ":" + tag : "@sha256:" + short(digest, 16)} (jour ${x.day}).`, "sys");
-    code(`digest : sha256:${digest}\n` + (reg === "bazar" ? "contenu : " + manifest.split("|").pop().split(";").join("\n         ") : "contenu : " + manifest.split(",").length + " couches de la guilde"));
+    code(`digest : sha256:${digest}\n` + (reg === "bazar" ? "contenu : " + manifest.split("|").pop().split(";").join("\n         ") : "contenu : " + manifest.split("|")[1].split(",").length + " couches de la guilde"));
     const check = sha256(manifest) === digest;
     out(check ? "Intégrité vérifiée : le SHA-256 du manifeste reçu est bien le digest demandé." : "Intégrité NON vérifiée.", check ? "ok" : "err");
     if (/minerai/.test(manifest)) out("Un paquet « minerai-bz » que personne n'a demandé s'est glissé dans l'image : l'étiquette a été repointée vers un contenu modifié (ici : mineur de cryptomonnaie fictif).", "err");
@@ -623,7 +623,7 @@ Corrections : \`corriger privilege|utilisateur|lecture-seule|capacites ‹liste 
     const L = layersFor(), d = imgDigest();
     const v = sha256(GUILD_KEY + "|" + d);
     x.sig = { digest: d, v };
-    x.pub = { digest: d, manifest: L.map(l => l.id).join(","), sig: true };
+    x.pub = { digest: d, manifest: "billets|" + L.map(l => l.id).join(","), sig: true };
     out(`Image « billets » signée et publiée au registre de la guilde.`, "ok");
     code(`digest    : sha256:${d}\nsignature : ${v.slice(0, 32)}…\n(jouet : signature à clé secrète partagée ; en vrai, signature asymétrique, avec une clé publique pour vérifier)`);
     if (secretHits().length) out("Attention : tu viens de signer une image qui contient un secret. La signature atteste l'origine, pas la qualité.", "err");
@@ -762,7 +762,7 @@ Corrections : \`corriger privilege|utilisateur|lecture-seule|capacites ‹liste 
     },
     couches: () => {
       const L = layersFor(), hits = secretHits(), fin = merged(L);
-      let body = T(210, 14, "pile de couches de l'image « billets » (du bas vers le haut : la 0 est en bas)", "f-s");
+      let body = T(210, 14, "pile de couches de « billets » (la 0 est en bas)", "f-s");
       const n = L.length;
       for (let k = 0; k < n; k++) {
         const i = n - 1 - k, y = 26 + k * 40, l = L[i], hasSec = hits.some(h => h.i === i), del = l.files.some(fl => fl.del);
@@ -806,7 +806,7 @@ Corrections : \`corriger privilege|utilisateur|lecture-seule|capacites ‹liste 
       if (!A("vitrine", "base") && !A("vitrine", "paiement")) body += T(210, 220, "✓ la vitrine ne joint plus la base ni le paiement", "f-s ft-ok");
       else body += T(210, 220, "✗ flèches rouges : la vitrine compromise joint la base et le paiement", "f-s ft-bad");
       REQ_FLOWS.forEach((r, i) => { if (!A(...r.split(">"))) body += T(210, 238 + i * 14, "✗ flux nécessaire bloqué : " + r.replace(">", " → "), "f-s ft-bad"); });
-      return { cap: "Flèches vertes : flux autorisés et nécessaires. Flèches rouges pointillées : accès directs de la vitrine compromise que rien ne justifie.", svg: SVG(262, "Politique réseau entre services", body) };
+      return { cap: "Flèches pleines : flux autorisés et nécessaires. Flèches rouges pointillées : accès directs de la vitrine compromise que rien ne justifie.", svg: SVG(262, "Politique réseau entre services", body) };
     },
     chaine: () => {
       const x = F(), d1 = x.day >= 1 || x.drift;

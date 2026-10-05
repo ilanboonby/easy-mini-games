@@ -802,7 +802,7 @@
         svg: SVG(232, "Chaîne de confiance de publication",
           R(8, 10, 110, 50) + T(63, 30, "Brigitte", "f-b") + T(63, 46, "clé privée", "f-s") + AR(118, 35, 150, 35) +
           R(150, 10, 120, 50, "f-pub") + T(210, 30, "registre", "f-b ft-pub") + T(210, 46, "archive + sig.", "f-s") + AR(270, 35, 302, 35) +
-          R(302, 10, 110, 50) + T(357, 30, "ton installeur", "f-b") + T(357, 46, "vérifie s^e = h", "f-s") +
+          R(302, 10, 110, 50) + T(357, 30, "installeur", "f-b") + T(357, 46, "vérifie s^e = h", "f-s") +
           R(150, 82, 120, 44, "f-ok") + T(210, 102, "annuaire éditeurs", "f-b ft-ok") + T(210, 118, "clés + autorisés", "f-s") + AR(270, 104, 330, 64, "f-ok") +
           rows + T(210, 222, "valide ≠ légitime : bon signataire requis", "f-s"))
       };

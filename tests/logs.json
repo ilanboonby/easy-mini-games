@@ -1,1 +1,11 @@
-[]
+["parler ada","aller nord","ouvrir auth","filtrer resultat=ECHEC","compter par ip","filtrer ip=203.0.113.66","chronologie","ouvrir auth","filtrer ip=203.0.113.66 resultat=OK","afficher 3 lignes","signaler 203.0.113.66 force brute",
+"ouvrir tout","filtrer ip=203.0.113.66",
+"ouvrir web","filtrer code=404","compter par ip","filtrer ip=203.0.113.66","chronologie","signaler 203.0.113.66 balayage",
+"ouvrir web","filtrer ip=203.0.113.66 chemin~select","afficher 8 lignes","signaler 203.0.113.66 injection",
+"ouvrir pare-feu","filtrer sens=SORTANT","compter par dst volume","examiner registre","filtrer dst=198.51.100.99","afficher 3 lignes","chronologie","signaler 198.51.100.99 exfiltration",
+"ouvrir tout","filtrer ip=203.0.113.66 heure=02:00-03:30","trier heure","afficher 14 lignes","ouvrir tout","filtrer ip=10.0.2.10 heure=02:00-03:00","afficher 6 lignes",
+"ordonner acces webshell escalade lateral exfiltration",
+"aller sud","aller ouest","examiner cadran","decaler web -2h","decaler systeme +4m29s","decaler web -1h","ordonner acces escalade webshell lateral exfiltration","ordonner acces webshell escalade lateral exfiltration",
+"aller est","aller est","parler bob","regle seuil 3 echecs en 5 min","regle seuil 30 echecs en 5 min","regle seuil 30 echecs en 60 min","regle seuil 30 echecs en 60 min sauf 10.0.3.55","regle seuil 40 404 en 5 min","regle motif select | union | script","regle motif union select | <script | ../ | ' or | drop table | sleep( | or 1=1 | cmd=","regle motif union select | <script | ../ | ' or | drop table | sleep( | or 1=1 | cmd= | /**/ | onerror",
+"aller ouest","aller sud","parler eve","examiner journal","comparer collecteur","effacer ligne 4","chainer journal","controler chaine","envoyer collecteur","effacer ligne 4","controler chaine","recalculer chaine","controler chaine","conserver tout 30","conserver tout 180","masquer mdp",
+"aller nord","aller nord","ouvrir web","filtrer chemin~mdp","afficher 5 lignes","aller sud","aller sud","masquer mdp","aller nord","indice","parler ada","analogies","carnet","schema pipeline","schema courbe","schema chrono","schema compromis","schema chaine"]

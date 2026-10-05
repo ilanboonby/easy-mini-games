@@ -400,7 +400,7 @@ const VERBS = {
   inv: ["inventaire", "inv", "i"], notes: ["carnet", "notes", "codex"], hint: ["indice", "aide moi"], help: ["aide", "help", "commandes", "?"],
   secret: ["secret", "choisir"], put: ["poser", "placer", "mettre"], ask: ["demander", "reclamer", "exiger"],
   accept: ["accepter", "valider", "approuver"], refuse: ["refuser", "rejeter"], accuse: ["accuser", "denoncer", "demasquer", "arreter"],
-  restart: ["recommencer", "reset"],
+  restart: ["recommencer", "reset"], debrief: ["analogies", "debrief", "bilan", "explications"],
 };
 const VERB_OF = {};
 for (const [k, arr] of Object.entries(VERBS)) arr.forEach(v => VERB_OF[v] = k);
@@ -532,6 +532,7 @@ function exec(raw) {
     case "accept": acceptCmd(target); break;
     case "refuse": refuseCmd(target); break;
     case "accuse": accuseCmd(target); break;
+    case "debrief": if (F.end) debrief(); else out("Termine d'abord l'aventure : ce bilan dévoile toutes les astuces du jeu.", "sys"); break;
     case "restart":
       if (rest[0] === "oui") { wipe(); S = fresh(); logEl.replaceChildren(); start(); }
       else out("Cela efface toute ta progression. Pour confirmer : `recommencer oui`", "err");
@@ -542,7 +543,7 @@ function exec(raw) {
 
 function help() {
   out("Commandes utiles", "title");
-  out("`regarder` · `examiner ‹objet›` · `aller ‹direction›` (ou n, s, e, o) · `prendre ‹objet›`\n`utiliser ‹objet› sur ‹objet›` · `parler ‹personne›` · `donner ‹objet› a ‹personne›`\n`demander ‹chose›` · `dire ‹mot ou nombre›` · `poser ‹carte›` · `accepter` / `refuser` / `accuser`\n`calc ‹a^b mod p›` (boulier de poche) · `secret ‹nombre›`\n`inventaire` · `carnet` · `indice` · `recommencer`", "sys");
+  out("`regarder` · `examiner ‹objet›` · `aller ‹direction›` (ou n, s, e, o) · `prendre ‹objet›`\n`utiliser ‹objet› sur ‹objet›` · `parler ‹personne›` · `donner ‹objet› a ‹personne›`\n`demander ‹chose›` · `dire ‹mot ou nombre›` · `poser ‹carte›` · `accepter` / `refuser` / `accuser`\n`calc ‹a^b mod p›` (boulier de poche) · `secret ‹nombre›`\n`inventaire` · `carnet` · `indice` · `analogies` (en fin de partie) · `recommencer`", "sys");
   out("Astuce : les commandes en orange sont cliquables.", "sys");
 }
 
@@ -633,7 +634,23 @@ function ending() {
   out("Madame Vault exécute l'ordre d'Alice : 4 200 pièces d'or, vers le compte de Bob. Personne n'a pu lire la lettre en chemin, personne ne l'a modifiée, et la banque sait précisément qui l'a livrée.", "ok");
   say("Maître Ada", "À ton retour, je t'ai préparé un thé. Tu sais maintenant ce que fait vraiment le petit cadenas dans la barre d'adresse : un échange de clés (Diffie-Hellman), un certificat vérifié (la chaîne de confiance), et un chiffrement symétrique rapide pour tout le reste. Et que sans l'identité, le chiffrement ne protège pas.");
   note("hs");
-  out("FIN. Tape `carnet` pour relire tes notes, ou `recommencer` pour rejouer. D'autres aventures arrivent à Port-443 (voir ROADMAP.md).", "title");
+  debrief();
+  out("FIN. Tape `carnet` pour relire tes notes, `analogies` pour revoir ce bilan, ou `recommencer` pour rejouer. D'autres aventures arrivent à Port-443 (voir ROADMAP.md).", "title");
+}
+
+
+function debrief() {
+  out("Comment ça marche vraiment : les analogies décodées", "title");
+  out("**Port-443 = Internet.** 443 est le numéro de port d'HTTPS. Les **courriers** sont tes données qui voyagent de routeur en routeur. Une **sacoche ouverte** : n'importe quel équipement sur le chemin (Wi-Fi public, box, fournisseur) peut lire un message qui n'est pas chiffré.");
+  out("**Le cadenas ouvert et la clé privée = cryptographie asymétrique.** Le cadenas, c'est la clé publique, que tout le monde peut prendre. Le fermer, c'est chiffrer. Seule la clé privée, que le propriétaire ne montre jamais, rouvre. En vrai (RSA, courbes elliptiques), on ne chiffre pas un message avec un cadenas physique : ce sont des calculs mathématiques faciles dans un sens, infaisables dans l'autre.");
+  out("**Le sceau et le bordereau = signature numérique.** Appliquer le sceau, c'est signer avec sa clé privée. N'importe qui vérifie avec la clé publique. Limite de l'image : une vraie signature dépend du contenu (via un hachage), alors qu'un tampon se copie sur un autre document. Dans HTTPS, c'est le serveur qui signe pour prouver son identité. Le client s'authentifie en général autrement (mot de passe dans le canal chiffré).");
+  out("**La clé de cuivre = clé de session symétrique.** La même clé ferme et ouvre, comme dans AES. Elle est des centaines de fois plus rapide que les cadenas : c'est elle qui chiffre vraiment la page, l'image, le mot de passe. Les clés asymétriques ne servent qu'à la mettre en place.");
+  out("**Les peintres et le corbeau = Diffie-Hellman.** On a pris des nombres au lieu de couleurs : chacun publie g^secret mod p, combine la valeur de l'autre avec son secret, et les deux trouvent le même nombre. **Ève** est l'espion passif : elle voit p, g, A et B, mais retrouver le secret est le problème du logarithme discret. Ici p = 23 (trop petit, tu l'as vu) ; en vrai ce sont des courbes elliptiques (X25519) de 256 bits. Limite : en vrai personne n'« annonce » le secret au coffre, les deux côtés dérivent leurs clés de session en silence. Jeter les secrets après la session, c'est la **confidentialité persistante**.");
+  out("**Le Capitaine, le registre, la Chancellerie = certificats et autorités.** Le Capitaine est ton navigateur. Le registre est son **magasin de certificats racine**. La Chancellerie Royale est une autorité racine, la Sous-Chancellerie une autorité **intermédiaire**. Les trois contrôles sont ceux du navigateur : le nom (le courrier jaune imitait « p0rt »), les dates (le bleu avait expiré), la chaîne (le vert s'était signé lui-même). Dans la vraie vie s'ajoute la vérification de révocation.");
+  out("**Le café Wi-Fi et Mallory = attaque de l'homme du milieu.** Un Wi-Fi public, ou un réseau piraté, laisse un attaquant se placer entre toi et le site. Son faux cadenas est une fausse clé publique : la lettre est bien chiffrée, mais pour lui. Ce qui l'arrête, c'est le certificat. Dans ton navigateur, c'est l'écran « Votre connexion n'est pas privée » : si on clique sur « continuer quand même », on accepte le faux cadenas.");
+  out("**La banque et les six cartes = le handshake TLS 1.3.** Madame Vault est le serveur. Dans l'ordre : ClientHello, ServerHello (à partir de là les deux ont le secret et chiffrent), Certificate + CertificateVerify, Finished du serveur, Finished du client (chacun confirme l'historique de l'échange, ce qui détecte toute modification), puis les données applicatives. Ce rituel prend environ un aller-retour sur le réseau.");
+  out("**Les simplifications du jeu.** (1) La lettre « scellée avec le cadenas de la banque » est l'ancien fonctionnement : TLS 1.3 n'envoie pas la clé de session chiffrée avec la clé publique du serveur, elle passe par Diffie-Hellman. Le cadenas sert ici à illustrer « chiffrer pour quelqu'un ». (2) Les leçons sont rangées par quartier pour être compréhensibles. Dans une vraie connexion, tout se passe en quelques millisecondes et dans un autre ordre. (3) Les noms de ville et de personnages, eux, sont des clins d'œil : Rivest (RSA), Diffie et Hellman, Ève (eavesdropper), Mallory (malicious), Alice et Bob.");
+  out("Rappel utile : **chiffrer + échanger une clé + vérifier l'identité** : il faut les trois. Sans le dernier, tu parles en secret… peut-être avec l'attaquant.", "ok");
 }
 
 function putCmd(txt) {

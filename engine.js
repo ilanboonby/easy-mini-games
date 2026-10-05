@@ -329,14 +329,14 @@ function openGame(id) {
 }
 function showHub() {
   G = null; gameEl.hidden = true; hubEl.hidden = false; backBtn.hidden = true;
-  headTitle.textContent = "PORT-443 QUEST"; headSub.textContent = "7 aventures pour comprendre la cybersécurité";
+  headTitle.textContent = "PORT-443 QUEST"; headSub.textContent = Object.keys(GAMES).length + " aventures pour comprendre la cybersécurité";
   document.title = "Port-443 Quest";
   const cards = document.getElementById("cards"); cards.replaceChildren();
   Object.values(GAMES).sort((a, b) => a.order - b.order).forEach(g => {
     const sv = readSave(g.id);
     const total = Object.keys(g.notes).length;
     const done = sv && sv.f && sv.f.end;
-    const b = document.createElement("button"); b.type = "button"; b.className = "gcard" + (done ? " done" : "");
+    const b = document.createElement("button"); b.type = "button"; b.dataset.id = g.id; b.className = "gcard" + (done ? " done" : "");
     b.innerHTML = `<b></b><small></small><span class="meta"></span>`;
     b.querySelector("b").textContent = `${g.order}. ${g.title}`;
     b.querySelector("small").textContent = g.blurb;

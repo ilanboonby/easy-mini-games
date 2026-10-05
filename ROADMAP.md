@@ -1,16 +1,51 @@
 # Roadmap
 
 ## Fait
-Les sept premiers jeux de Port-443 sont terminés (voir README) : TLS, RSA, injections SQL/XSS, OAuth/JWT, Kerberos, hachage et mots de passe, SOP/CORS/CSRF.
+| # | Jeu | Concept |
+|---|-----|---------|
+| 1 | Le Courrier de Port-443 | TLS, certificats, HTTPS |
+| 2 | La Forge de Rivest | RSA, factorisation, signature |
+| 3 | Les Archives de Port-443 | Injection SQL, XSS |
+| 4 | Le Palais des Passeports | OAuth 2.0, JWT |
+| 5 | La Citadelle des Tickets | Kerberos |
+| 6 | L'Apothicaire des Empreintes | Hachage, sel, mots de passe |
+| 7 | Le Quartier des Douanes | SOP, CORS, CSRF |
 
-## Idées pour la suite
+## En cours : réseau
+| Jeu | Concept | Idée de gameplay |
+|-----|---------|------------------|
+| VPN | IPsec, WireGuard, tunnel | Construire un tunnel entre deux quartiers, voir ce que le fournisseur de Wi-Fi observe avant et après, puis l'échange de clés |
+| DNS | Résolution, empoisonnement de cache, DNSSEC | Le facteur demande son chemin à un annuaire que Mallory essaie de falsifier ; les signatures DNSSEC bloquent la fausse réponse |
+| Pare-feu | Règles, NAT, segmentation | Écrire des règles pour protéger une citadelle, voir ce qu'un scan de ports révèle |
+| Wi-Fi | WPA2, WPA3 | Observer la poignée de main, comprendre pourquoi un mot de passe faible tombe hors ligne, et ce que change WPA3 |
+
+## À faire : identité et accès
 | Concept | Idée de gameplay |
 |---------|------------------|
-| VPN et IPsec / WireGuard | Construire un tunnel entre deux quartiers, voir ce que le fournisseur de Wi-Fi observe |
-| DNS, DNSSEC et empoisonnement de cache | Le facteur demande son chemin à un annuaire que Mallory essaie de falsifier |
-| Phishing et authentification multifacteur (TOTP, WebAuthn) | Distinguer de vrais courriers de faux, puis comprendre pourquoi une clé matérielle résiste |
-| Chaîne d'approvisionnement logicielle | Un paquet empoisonné dans l'entrepôt : signatures, verrouillage des versions |
-| Cryptographie post-quantique | Le jour où les cadenas RSA tombent : alternatives par réseaux euclidiens |
+| Phishing et authentification multifacteur (TOTP, WebAuthn) | Distinguer de vrais courriers de faux, voir pourquoi un code à 6 chiffres peut être volé alors qu'une clé matérielle résiste |
+| Gestion des droits (RBAC, moindre privilège) | Configurer qui peut entrer où, puis observer comment un compte trop puissant devient une porte d'entrée |
+| Gestionnaires de mots de passe et secrets | Apprendre où ranger les clés d'API, et pourquoi pas dans le dépôt de code |
+
+## À faire : logiciel et données
+| Concept | Idée de gameplay |
+|---------|------------------|
+| Chaîne d'approvisionnement logicielle | Un paquet empoisonné dans l'entrepôt : signatures, verrouillage des versions, dépendances confuses |
+| Chiffrement de disque et de sauvegardes | Protéger un coffre contre un vol de support : modes de chiffrement, gestion des clés |
+| Rançongiciels et sauvegardes | Observer une attaque simulée, puis concevoir des sauvegardes qu'elle ne peut pas atteindre (3-2-1, copies hors ligne) |
+
+## À faire : cryptographie avancée
+| Concept | Idée de gameplay |
+|---------|------------------|
+| Cryptographie post-quantique | Le jour où les cadenas RSA tombent : alternatives par réseaux euclidiens, migration |
+| Blockchain et preuves de travail | Miner des blocs à la main avec du vrai SHA-256, puis tenter de réécrire l'historique |
+| Preuves à divulgation nulle (zero-knowledge) | Prouver qu'on connaît un secret sans le révéler (la caverne d'Ali Baba) |
+
+## À faire : détection et réponse
+| Concept | Idée de gameplay |
+|---------|------------------|
+| Journaux et détection d'intrusion | Lire des logs, repérer la trace de Mallory, écrire une règle d'alerte |
+| Gestion d'incident | Une alerte tombe : confinement, analyse, reprise, dans le bon ordre |
+| Ingénierie sociale | Jouer le standard téléphonique face à des appels qui essaient de te manipuler |
 
 ## Idées transverses
 - Sauvegarde de progression partagée entre les jeux, avec un « passeport » de badges

@@ -1,1 +1,6 @@
-[]
+["parler ada","examiner carte","propager 203.0.112.0/23","table","route 198.18.70.9","route 198.18.200.1",
+"aller sud","parler mallory","detourner 203.0.112.0/23","couverture","retirer","detourner 203.0.113.0/24","couverture","tracer 203.0.113.80",
+"mode trou","aller nord","visiter banque","aller sud","mode relais","aller nord","visiter banque","visiter banque en clair","aller sud","mode usurper","aller nord","tls laxiste","visiter banque","tls strict","visiter banque",
+"aller sud","retirer","aller nord","aller ouest","parler alice","fuite","aller est","limite cafe 3","filtrer cafe 198.51.100.0/24","aller ouest","parler alice","aller est",
+"aller est","valider 203.0.112.0/23 64666","publier roa 203.0.112.0/23 23 64510","valider 203.0.112.0/23 64510","valider 203.0.113.0/24 64510","aller ouest",
+"rov rejeter","aller sud","detourner 203.0.113.0/24","couverture","aller nord","rov demander nord","couverture","aller sud","detourner 203.0.112.0/23 forge","aller nord","aller nord","surveiller","aller sud","parler ada"]

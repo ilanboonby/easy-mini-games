@@ -333,8 +333,8 @@ function showHub() {
   document.title = "Port-443 Quest";
   const cards = document.getElementById("cards"); cards.replaceChildren();
   cards.className = "";
-  const THEMES = ["Cryptographie", "Réseau", "Applications web", "Identité et accès", "Logiciel et données", "Cryptographie avancée", "Détection et réponse"];
-  const THEME_OF = { tls: 0, rsa: 0, hash: 0, vpn: 1, dns: 1, firewall: 1, wifi: 1, web: 2, cors: 2, oauth: 3, kerberos: 3, mfa: 3, rbac: 3, secrets: 3, supply: 4, diskenc: 4, ransom: 4, pqc: 5, chain: 5, zkp: 5, logs: 6, incident: 6, social: 6 };
+  const THEMES = ["Cryptographie", "Réseau", "Applications web", "Identité et accès", "Logiciel et données", "Cryptographie avancée", "Détection et réponse", "Cloud et mobile", "Systèmes", "Vie privée et IA", "Organisation et gouvernance", "Cas concrets"];
+  const THEME_OF = { tls: 0, rsa: 0, hash: 0, cryptomisuse: 0, vpn: 1, dns: 1, firewall: 1, wifi: 1, mailauth: 1, dos: 1, bgp: 1, web: 2, cors: 2, api: 2, session: 2, upload: 2, ssrf: 2, clickjack: 2, oauth: 3, kerberos: 3, mfa: 3, rbac: 3, secrets: 3, supply: 4, diskenc: 4, ransom: 4, pqc: 5, chain: 5, zkp: 5, sidechan: 5, ecc: 5, shamir: 5, mpc: 5, logs: 6, incident: 6, social: 6, nids: 6, forensics: 6, cloud: 7, mobile: 7, privesc: 8, memcorrupt: 8, containers: 8, privacy: 9, ai: 9, threat: 10, vuln: 10, redteam: 10, bcp: 10, compliance: 10, heartbleed: 11, log4shell: 11, solarwinds: 11 };
   const games = Object.values(GAMES).sort((a, b) => a.order - b.order);
   THEMES.forEach((name, ti) => {
     const inTheme = games.filter(g => (THEME_OF[g.id] ?? 0) === ti);

@@ -10,14 +10,10 @@
 | 5 | La Citadelle des Tickets | Kerberos |
 | 6 | L'Apothicaire des Empreintes | Hachage, sel, mots de passe |
 | 7 | Le Quartier des Douanes | SOP, CORS, CSRF |
-
-## En cours : réseau
-| Jeu | Concept | Idée de gameplay |
-|-----|---------|------------------|
-| VPN | IPsec, WireGuard, tunnel | Construire un tunnel entre deux quartiers, voir ce que le fournisseur de Wi-Fi observe avant et après, puis l'échange de clés |
-| DNS | Résolution, empoisonnement de cache, DNSSEC | Le facteur demande son chemin à un annuaire que Mallory essaie de falsifier ; les signatures DNSSEC bloquent la fausse réponse |
-| Pare-feu | Règles, NAT, segmentation | Écrire des règles pour protéger une citadelle, voir ce qu'un scan de ports révèle |
-| Wi-Fi | WPA2, WPA3 | Observer la poignée de main, comprendre pourquoi un mot de passe faible tombe hors ligne, et ce que change WPA3 |
+| 8 | Le Tunnel de Port-443 | VPN, IPsec, WireGuard |
+| 9 | L'Annuaire de Port-443 | DNS, DNSSEC |
+| 10 | La Muraille de Port-443 | Pare-feu, NAT, segmentation |
+| 11 | Le Café du Wi-Fi | WPA2, WPA3 |
 
 ## À faire : identité et accès
 | Concept | Idée de gameplay |

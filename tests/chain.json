@@ -1,1 +1,7 @@
-[]
+["parler ada","payer bob","payer boulangere","ouvrir livre","payer bob","payer boulangere",
+"aller nord","ajouter mallory bob 50","ajouter alice bob 5","ajouter bob eve 3","ajouter eve alice 2","examiner livre","modifier 1 500","auditer","recalculer",
+"aller sud","aller est","batir","modifier 3 99","prouver 6","controler 6","prouver 6","controler 6 90","controler 6",
+"aller ouest","aller ouest","miner 1","miner 2","miner 3","miner 4","reecrire 4","reecrire 1",
+"aller est","aller sud","fourche","etendre a","comparer","estimer 10 6","estimer 30 6","simuler 30 6","exiger 3","exiger 20","estimer 51 6",
+"aller est","energie","tester saisie","tester cle","tester contrat","parler validateur",
+"aller ouest","aller nord","parler ada","schema"]

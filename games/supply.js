@@ -241,7 +241,7 @@
     officiel: () => ["Le miroir sert une archive modifiée. Reprends l'installation depuis le registre officiel : le verrou contrôlera de toute façon.", "`installer officiel`"],
     libre: () => ["Vois ce qui se passerait sans verrou : `installer libre` résout les plages comme si le verrou n'existait pas.", "`installer libre`"],
     pin: () => ["Fige tes dépendances directes sur des versions exactes.", "`epingler tout`"],
-    scrList: () => ["Va à l'étuve (ouest de l'atelier) et demande la liste des scripts d'installation de l'arbre.", "`aller sud` ou `aller ouest` selon l'endroit, puis `lister scripts`."],
+    scrList: () => ["Va à l'étuve (ouest de l'atelier) et demande la liste des scripts d'installation de l'arbre.", "Depuis la douane : `aller ouest`, `aller ouest`, puis `lister scripts`."],
     scrOpen: () => ["Un script est signalé comme suspect. Lis-le.", "`ouvrir cookie-jar-lite`"],
     scrRun: () => ["Lance une installation avec les scripts activés pour voir ce que fait l'étuve.", "`installer`"],
     scrIgnore: () => ["Coupe l'exécution des scripts par défaut.", "`desactiver scripts`"],
@@ -453,7 +453,7 @@
       note("lock"); fig("integrite");
       return;
     }
-    if (!x.instOk) { x.instOk = true; out("Toutes les empreintes correspondent au verrou : tu installes exactement ce que tu as audité. (Le colis du miroir était trafiqué ; celui du registre officiel est conforme au verrou.)", "ok"); fig("integrite"); }
+    if (!x.instOk) { x.instOk = true; x.lastInt = { name: "chronos@2.1.0", exp: x.lock.chronos.h, got: x.lock.chronos.h }; out("Toutes les empreintes correspondent au verrou : tu installes exactement ce que tu as audité. (Le colis du miroir était trafiqué ; celui du registre officiel est conforme au verrou.)", "ok"); fig("integrite"); }
     else out("Toutes les empreintes correspondent au verrou.", "ok");
     // phase 2 : scripts
     let blocked = false;
@@ -492,7 +492,7 @@
     const ft = floatTree();
     const rows = ft.map(r => {
       const lv = x.lock[r.name] ? x.lock[r.name].v : "—";
-      return `${"  ".repeat(r.depth)}${r.name.padEnd(16 - 2 * r.depth)} ${(r.spec).padEnd(8)} → ${String(r.ver).padEnd(7)} ${r.ver === lv ? "" : "≠ verrou (" + lv + ")"}`;
+      return `${"  ".repeat(r.depth)}${r.name.padEnd(18 - 2 * r.depth)} ${(r.spec).padEnd(7)} → ${String(r.ver).padEnd(7)} ${r.ver === lv ? "" : "≠ verrou (" + lv + ")"}`;
     });
     out("Installation SANS verrou : le résolveur prend la plus haute version de chaque plage.", "sys");
     code(rows.join("\n"));
@@ -515,7 +515,7 @@
     code(`reçu     ${got}\nverrou   ${exp}`);
     if (got === exp) out("Identique : l'archive est celle que tu as auditée.", "ok");
     else {
-      out(`${diffHex(got, exp)} caractères sur 64 diffèrent : un seul ajout dans l'archive (la dernière ligne) change l'empreinte presque entièrement. C'est elle que le miroir de la rue basse a glissée (Ève, qui écoute tout ce qui passe par là, l'avait vu sans pouvoir l'empêcher). Le colis est refusé, quelle que soit sa provenance.`, "err");
+      out(`${diffHex(got, exp)} caractères sur 64 diffèrent : un seul ajout dans l'archive (la dernière ligne) change l'empreinte presque entièrement. C'est elle que le miroir de la rue basse a glissée (Ève, qui écoute le trafic de la rue basse, avait repéré ce relais sans pouvoir l'empêcher). Le colis est refusé, quelle que soit sa provenance.`, "err");
       x.lastInt = { name: n + "@" + v, exp, got };
     }
     x.hashSeen = true; fig("integrite");
@@ -582,7 +582,7 @@
     const cur = x.lock["flux-stream"].v, nv = "3.3.7";
     const added = Object.keys(PKG["flux-stream"].v[nv].d).filter(d => !PKG["flux-stream"].v[cur].d[d]);
     out("Le bot de mises à jour propose :", "sys");
-    code(`flux-stream ${cur} → ${nv}   « correctifs mineurs »\n${added.map(a => `  + nouvelle dépendance : ${a} ${PKG["flux-stream"].v[nv].d[a]}  (créé il y a ${META[a][1]}, ${META[a][0]} téléchargements)`).join("\n")}\ntests de l'application : verts`);
+    code(`flux-stream ${cur} → ${nv}   « correctifs mineurs »\n${added.map(a => `  + nouvelle dépendance : ${a} ${PKG["flux-stream"].v[nv].d[a]}  (créé il y a ${META[a][1]} ; téléchargements : ${META[a][0]})`).join("\n")}\ntests de l'application : verts`);
     out("Un correctif mineur qui ajoute une dépendance inconnue : suspect. Les tests verts ne prouvent rien (le code piégé ne casse rien). Vérifie QUI a publié : `authentifier flux-stream 3.3.7`. Tu peux aussi voir `fiche flux-stream`.", "sys");
     x.prop = true; fig("arbre");
   }
@@ -593,15 +593,15 @@
     if (n && n !== "flux-stream") { out(`${n} n'a pas d'entrée dans l'annuaire des éditeurs de ce bureau : seule la signature de flux-stream est contrôlée dans le jeu. (En vrai, c'est inégal selon les écosystèmes.)`, "sys"); return; }
     const ver = verIn(c.rawArg) || x.lock["flux-stream"].v;
     if (!SIGS[ver]) { out(`Versions connues de flux-stream : ${Object.keys(SIGS).join(", ")}. Exemple : \`authentifier flux-stream 3.3.7\`.`, "err"); return; }
-    const [claim] = SIGS[ver], body = content("flux-stream", ver), h = hnum(body), s = sigOf(ver), key = KEYS[claim];
+    const [claim] = SIGS[ver], cn = claim === "krando" ? "k-rando" : claim, body = content("flux-stream", ver), h = hnum(body), s = sigOf(ver), key = KEYS[claim];
     const back = modpow(s, E, key.n), valid = back === h, authorized = claim === "brigitte", prov = /^attest/.test(PROV[ver]);
     code([
       `archive      flux-stream@${ver}`,
       `SHA-256      ${sha256(body).slice(0, 18)}…  →  h = ${h}`,
-      `signature    s = ${s}   (déclarée par « ${claim} »)`,
-      `clé publique de ${claim} : n = ${key.n}, e = ${E}`,
+      `signature    s = ${s}   (déclarée par « ${cn} »)`,
+      `clé publique de ${cn} : n = ${key.n}, e = ${E}`,
       `vérification s^e mod n = ${back}   ${valid ? "= h : ✓ la signature est authentique" : "≠ h : ✗ signature INVALIDE (forgée ou archive modifiée)"}`,
-      `éditeur      autorisé pour flux-stream (annuaire) : brigitte   →   ${authorized ? "✓" : "✗ « " + claim + " » n'est pas autorisé"}`,
+      `éditeur      autorisé pour flux-stream (annuaire) : brigitte   →   ${authorized ? "✓" : "✗ « " + cn + " » n'est pas autorisé"}`,
       `provenance   ${PROV[ver]}   →   ${prov ? "✓" : "✗"}`,
       `verdict      ${valid && authorized && prov ? "ACCEPTER" : "REFUSER"}`,
     ].join("\n"));
@@ -792,19 +792,19 @@
       };
     },
     chaine: () => {
-      const x = F(), st = v => (x.authRes[v] === "ok" ? ["✓ valide, bon éditeur", "ft-ok"] : x.authRes[v] === "unauth" ? ["✗ signature valide, éditeur non autorisé", "ft-bad"] : x.authRes[v] === "forged" ? ["✗ signature invalide (forgée)", "ft-bad"] : ["? pas encore vérifiée", ""]);
-      const rows = [["3.3.6", "brigitte"], ["3.3.7", "k-rando"], ["3.3.8", "« brigitte » (faux)"]].map(([v, who], i) => {
+      const x = F(), st = v => (x.authRes[v] === "ok" ? ["✓ valide, bon éditeur", "ft-ok"] : x.authRes[v] === "unauth" ? ["✗ éditeur non autorisé", "ft-bad"] : x.authRes[v] === "forged" ? ["✗ signature forgée", "ft-bad"] : ["? à vérifier", ""]);
+      const rows = [["3.3.6", "brigitte"], ["3.3.7", "k-rando"], ["3.3.8", "« brigitte »"]].map(([v, who], i) => {
         const s = st(v), y = 150 + i * 22;
-        return T(8, y, `${v} signée par ${who}`, "f-s", "start") + T(412, y, s[0], "f-s " + s[1], "end");
+        return T(8, y, `${v} par ${who}`, "f-s", "start") + T(412, y, s[0], "f-s " + s[1], "end");
       }).join("");
       return {
         cap: "Chaîne de confiance : la clé privée de l'éditeur signe l'archive, l'installeur vérifie avec la clé publique de l'annuaire, puis contrôle que le signataire est autorisé pour ce paquet.",
         svg: SVG(232, "Chaîne de confiance de publication",
-          R(8, 10, 110, 50) + T(63, 30, "Brigitte", "f-b") + T(63, 46, "clé privée (sceau)", "f-s") + AR(118, 35, 150, 35) + T(134, 26, "signe", "f-s") +
-          R(150, 10, 120, 50, "f-pub") + T(210, 30, "registre", "f-b ft-pub") + T(210, 46, "archive + signature", "f-s") + AR(270, 35, 302, 35) +
-          R(302, 10, 110, 50) + T(357, 30, "ton installeur", "f-b") + T(357, 46, "vérifie h = s^e mod n", "f-s") +
-          R(150, 82, 120, 44, "f-ok") + T(210, 102, "annuaire éditeurs", "f-b ft-ok") + T(210, 118, "clé publique + autorisés", "f-s") + AR(270, 104, 330, 64, "f-ok") +
-          rows + T(210, 222, "valide ≠ légitime : il faut aussi le bon signataire et la provenance", "f-s"))
+          R(8, 10, 110, 50) + T(63, 30, "Brigitte", "f-b") + T(63, 46, "clé privée", "f-s") + AR(118, 35, 150, 35) +
+          R(150, 10, 120, 50, "f-pub") + T(210, 30, "registre", "f-b ft-pub") + T(210, 46, "archive + sig.", "f-s") + AR(270, 35, 302, 35) +
+          R(302, 10, 110, 50) + T(357, 30, "ton installeur", "f-b") + T(357, 46, "vérifie s^e = h", "f-s") +
+          R(150, 82, 120, 44, "f-ok") + T(210, 102, "annuaire éditeurs", "f-b ft-ok") + T(210, 118, "clés + autorisés", "f-s") + AR(270, 104, 330, 64, "f-ok") +
+          rows + T(210, 222, "valide ≠ légitime : bon signataire requis", "f-s"))
       };
     },
     sbom: () => {
@@ -833,7 +833,7 @@
       const x = F(), block = m => { out(m, "sys"); return true; };
       if (dest === "entrepot" && !x.quest) return block("Maître Ada te rattrape par la manche : « Pas si vite, on commence par un mot. » (`parler ada`)");
       if (dest === "douane" && !x.routed) return block("La porte de la douane est close. Une plaquette : « Pas de verrou tant que le manifeste n'est pas propre : noms et résolution des noms, à l'Entrepôt (nord). »");
-      if (dest === "etuve" && !x.pinned && !allPinned()) return block("L'étuve est verrouillée : « D'abord, termine la douane : installation vérifiée, `installer libre`, puis épingler les directes. »");
+      if (dest === "etuve" && !(x.instOk && x.libre && allPinned())) return block("L'étuve est verrouillée : « D'abord, termine la douane : installation vérifiée, `installer libre`, puis épingler les directes. »");
       if (dest === "sceaux" && !x.scrOk) return block("Le bureau des sceaux est fermé : « Reviens quand les scripts d'installation seront maîtrisés (étuve, ouest de l'atelier). »");
       if (dest === "archives" && !x.instFinal) return block("Les archives sont fermées : « Une alerte arrivera quand ton installation complète sera propre. Termine la chaîne de publication d'abord (bureau des sceaux). »");
       if (dest === "etuve") x.etuveOn = true;

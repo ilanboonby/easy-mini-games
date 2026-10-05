@@ -179,7 +179,7 @@
     unlock: () => ["Redonne la phrase de passe : le jeu déroule la dérivation, le déballage, la vérification. Essaie d'abord une mauvaise phrase, tu verras.", "`deverrouiller soleil123`"],
     wake0: () => ["Le portable est éteint : rallume-le en tapant ta phrase.", "`deverrouiller soleil123`"],
     rewrap: () => ["Bob a quitté le service : change la phrase de passe, et regarde ce qui est (ou non) re-chiffré. Garde un mot courant pour la suite de l'audit.", "`changer phrase port443` (puis, si tu es curieux·se, `rechiffrer disque` pour comparer)."],
-    ecb: () => ["Va à la salle des mosaïques (est du quai) et chiffre le cadenas bloc par bloc, en mode ECB.", "`aller sud` ou `aller ouest` pour revenir au quai, `aller est`, `chiffrer mosaique ecb`."],
+    ecb: () => ["Va à la salle des mosaïques (est du quai) et chiffre le cadenas bloc par bloc, en mode ECB.", "`aller sud`, `aller est`, puis `chiffrer mosaique ecb`."],
     tweak: () => ["Rechiffre le même cadenas avec un mode qui dépend de la position.", "`chiffrer mosaique tweak`"],
     atk1: () => ["Va à l'antre de Mallory (sud du quai) : elle a le disque et son entête. Que tire-t-elle de la phrase ?", "`attaquer phrase` (dans l'antre)."],
     kdf: () => ["Mallory a trouvé la phrase en un clin d'œil. Rends chaque essai coûteux en réglant la dérivation de clé du volume (à l'atelier).", "`regler kdf lent`"],
@@ -207,7 +207,7 @@
     eve3: () => ["Vérifie qu'Ève est maintenant bloquée.", "`ecouter serveur`"],
     lost: () => ["Le portable de Bob (et la clé) est dans les mains du voleur. Essaie de restaurer la sauvegarde.", "`restaurer sauvegarde`"],
     rkgen: () => ["Il aurait fallu un séquestre : génère une clé de récupération.", "`generer cle recuperation`"],
-    rksafe: () => ["Garde cette clé à l'écart du portable et du serveur : dans le coffre de la Guilde.", "`ranger cle recuperation coffre` (ou `donner cle recuperation a ada`)."],
+    rksafe: () => ["Garde cette clé à l'écart du portable et du serveur : dans le coffre de la Guilde.", "`ranger cle recuperation coffre` (ou, au quai, `donner cle recuperation a ada`)."],
     restore: () => ["Teste la restauration avec la clé du coffre : un séquestre non testé ne vaut rien.", "`examiner coffre` pour lire le code, puis `restaurer sauvegarde ‹code›`."],
     wipe: () => ["Dernier chapitre : une cliente demande l'effacement de ses données, partout. Détruis la clé du volume du portable perdu.", "`detruire cle disque`"],
     rkgone: () => ["Détruis aussi la clé de récupération (coffre et emplacement du serveur) : tant qu'une copie existe, l'effacement n'est pas total.", "`detruire cle recuperation`"],
@@ -254,7 +254,7 @@
       return;
     }
     if (x.mode === "fichier") {
-      code("Partition principale\n  /home/bob/Documents/registre-membres.txt.enc   [chiffré]   " + SECT.length * SW + " octets\n  /home/bob/Documents/salaires-2026.ods             [en clair]\n  /home/bob/.cache/~registre-membres.tmp           [en clair : copie temporaire de l'éditeur]\n  /var/swap (fichier d'échange)  fragment lu : \"...bob  cartographe        IBAN FR76 0000 0000...\"\n\nContenu de registre-membres.txt.enc :\n  " + hexOf("x").length + "x" + sh(sha256("fichier"), 24) + " (bruit)\n\n" + boot);
+      code("Partition principale\n  /home/bob/Documents/registre-membres.txt.enc   [chiffré]   " + SECT.length * SW + " octets\n  /home/bob/Documents/salaires-2026.ods             [en clair]\n  /home/bob/.cache/~registre-membres.tmp           [en clair : copie temporaire de l'éditeur]\n  /var/swap (fichier d'échange)  fragment lu : \"...bob  cartographe        IBAN FR76 0000 0000...\"\n\nContenu de registre-membres.txt.enc :\n  " + sh(sha256("fichier"), 24) + " (bruit)\n\n" + boot);
       out("Le fichier est bien chiffré, mais le voleur sait qu'il existe, sa taille, et il lit sans effort la copie temporaire de l'éditeur et un fragment du fichier d'échange (swap). Le chiffrement par fichier laisse fuiter tout ce qu'il n'a pas pensé à couvrir.", "err");
       if (!x.sawFile) { x.sawFile = true; out("Il faut chiffrer tout le volume, pas seulement les fichiers qu'on a pensé à protéger : `chiffrer disque ‹phrase›`.", "sys"); }
       return;
@@ -569,7 +569,7 @@
     if (S.room !== "archives") { out("Ève est aux archives (ouest du quai).", "sys"); return; }
     if (!x.bk) { say("Ève", "Il n'y a encore rien sur mon serveur."); return; }
     if (x.bk === "clair") {
-      say("Ève", "Je lis ce que tu as déposé, sans effort : ");
+      say("Ève", "Je lis ce que tu as déposé, sans effort. Regarde.");
       code(SECT.join("\n"));
       out("L'hébergeur (ou quiconque le compromet, ou une saisie, ou une erreur de configuration) voit tout. Le chiffrement en transit protège le trajet, pas le stockage. Passons au chiffrement côté client : `sauvegarder chiffre`.", "err");
       x.eveClear = true; fig("sauvegarde"); return;
@@ -630,7 +630,7 @@
     if (!x.lost) { say("Maître Ada", "Constate d'abord le problème : `restaurer sauvegarde`."); return; }
     if (x.rkGen) { out("La clé de récupération existe déjà.", "sys"); return; }
     x.rkGen = true; x.slot = true; x.rkState = "poche"; give("rk");
-    out("Tu génères une clé de récupération aléatoire et tu enveloppe la clé de sauvegarde sous elle : un deuxième emplacement de clé, déposé sur le serveur (sans danger : il n'ouvre rien sans la clé de récupération).", "ok");
+    out("Tu génères une clé de récupération aléatoire et tu enveloppes la clé de sauvegarde sous elle : un deuxième emplacement de clé, déposé sur le serveur (sans danger : il n'ouvre rien sans la clé de récupération).", "ok");
     code(RK + "\nrecuperation.slot = BK XOR f(RK) = " + sh(xorHex(BK, rkKey(RK)), 16));
     out("Cette feuille est maintenant dans ta poche : si tu la perds avec le portable, on retombe dans le même piège. Range-la : `ranger cle recuperation coffre`.", "sys");
     fig("sauvegarde");
@@ -648,6 +648,7 @@
       out("Les copies de l'archive existent toujours : des octets partout. Mais plus aucune copie de la clé : tout est du bruit pour toujours. C'est ça, l'effacement cryptographique.", "ok");
       fig("sauvegarde"); return;
     }
+    if (x.keyAt !== "portable") { say("Maître Ada", "La clé est encore à côté des données : sépare-la d'abord (`ranger cle portable`)."); return; }
     if (!code0) {
       if (!x.rkGen) {
         x.lost = true;
@@ -670,7 +671,7 @@
     if (!x.restored) {
       x.restored = true; note("sauvegarde");
       say("Maître Ada", "Voilà un séquestre qui a fait son travail : c'est le seul moyen de rouvrir les sauvegardes quand la clé de tous les jours est perdue. Et c'est aussi le talon d'Achille : celui qui détient le coffre détient tout. Il faut donc le protéger comme le reste.");
-      say("Maître Ada", "Dernier chapitre. Alice, membre de la Guilde, nous demande d'effacer toutes ses données de nos archives. Or elles existent en copies : le serveur, la bande hors site, le miroir d'Ève, le disque du portable volé. Impossible de toutes les atteindre... mais une seule clé les protège. Détruis-la : `detruire cle disque` puis `detruire cle recuperation`.");
+      say("Maître Ada", "Dernier chapitre. Alice, membre de la Guilde, nous demande d'effacer toutes ses données de nos archives. Or elles existent en copies : le serveur, la bande hors site, le miroir d'Ève, le disque du portable volé. Impossible de toutes les atteindre... mais toutes sont chiffrées : détruis les clés. `detruire cle disque` puis `detruire cle recuperation`.");
     }
     fig("sauvegarde");
   }
@@ -680,11 +681,11 @@
     if (!x.restored) { say("Maître Ada", "Pas encore : on n'efface une clé qu'une fois qu'on sait restaurer ce qui doit l'être."); return; }
     if (/disque|volume|portable|entete/.test(t)) {
       if (x.wiped) { out("L'entête est déjà détruit.", "sys"); return; }
-      x.wiped = true; x.hdr = x.hdr; x.tpmOn = false;
+      x.wiped = true;
       out("Commande d'effacement envoyée au portable perdu (en vrai : gestion de parc, dès qu'il se connecte), qui réécrit les quelques dizaines d'octets de l'entête. Les 500 Go de secteurs chiffrés sont toujours là, mais la DEK n'existe plus nulle part :", "ok");
       code("entête (sel, DEK enveloppée, emplacement TPM) : zone écrasée\nsecteurs chiffrés : 500 Go intacts... illisibles");
       out("Réécrire 500 Go sur un SSD est lent et peu fiable (les cellules sont réaffectées en cachette, des copies subsistent). Détruire la clé, un geste de quelques octets, est plus sûr et instantané. Et la clé de récupération ? `detruire cle recuperation`.", "sys");
-      x.rkState === "detruite" || fig("cles");
+      if (x.rkState !== "detruite") fig("cles");
     } else if (/recup|rk|coffre|sauvegarde/.test(t)) {
       if (x.rkState === "detruite") { out("La clé de récupération est déjà détruite.", "sys"); return; }
       if (x.rkState !== "coffre") { out("Il n'y a pas de clé de récupération dans le coffre.", "sys"); return; }
@@ -740,7 +741,7 @@
       let b = "";
       b += R(8, 8, 196, 38, "f-priv") + T(106, 24, "phrase de passe", "f-b") + T(106, 39, "« " + ph + " »", "f-s");
       b += AR(106, 46, 106, 62);
-      b += R(8, 62, 196, 38) + T(106, 78, "dérivation lente (KDF)", "f-b") + T(106, 93, "SHA-256 × " + h.iter + ", sel " + h.salt, "f-s");
+      b += R(8, 62, 196, 38) + T(106, 78, h.iter > 1 ? "dérivation lente (KDF)" : "dérivation rapide (1 hachage)", "f-b") + T(106, 93, "SHA-256 × " + h.iter + ", sel " + h.salt, "f-s");
       b += AR(106, 100, 106, 116);
       b += R(8, 116, 196, 38, "f-pub") + T(106, 132, "KEK : clé d'enveloppe", "f-b ft-pub") + T(106, 147, sh(kek, 10), "f-s");
       b += AR(106, 154, 106, 170);
@@ -791,10 +792,7 @@
     start: "quai", firstCommand: "parler ada",
     ents, rooms, notes, hints, figs, objective, talk, debrief, isEnd: () => !!F().end,
     setup() { const x = F(); x.mode = "clair"; x.pw = "on"; x.bk = ""; x.keyAt = ""; x.rkState = "none"; },
-    give(item, who) {
-      if (item === "rk" && who === "ada") { if (S.room !== "quai" && F().rkState !== "coffre") { /* Ada est au quai */ } return rkGive(); }
-      return false;
-    },
+    give(item, who) { if (item === "rk" && who === "ada") return rkGive(); return false; },
     refig(name) { fig(name); },
     figAlias: { etats: ["disque", "protection", "voleur"], cles: ["hierarchie", "cle", "kek", "dek"], mosaique: ["ecb", "mode", "tweak", "cadenas"], menaces: ["menace", "evil", "maid", "tpm"], sauvegarde: ["backup", "sauvegardes", "sequestre", "recuperation"] },
     help: "Spécifiques : `demonter disque` · `chiffrer fichier|disque ‹phrase›|mosaique ecb|tweak|sauvegarde` · `eteindre portable` · `veille` · `demarrer` · `deverrouiller ‹phrase›` · `changer phrase ‹…›` · `rechiffrer disque` · `regler kdf lent` · `activer tpm ‹PIN›` · `attaquer phrase` · `capturer memoire` · `trafiquer amorce` · `sauvegarder clair|chiffre` · `ecouter serveur` · `ranger cle portable|recuperation coffre` · `generer cle recuperation` · `restaurer sauvegarde ‹code›` · `detruire cle disque|recuperation`",

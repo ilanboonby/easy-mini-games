@@ -49,6 +49,7 @@ function sha256(str) {
 
 /* ============ État ============ */
 const GAMES = {};
+const THEME_OF = { tls: 0, rsa: 0, hash: 0, cryptomisuse: 0, vpn: 1, dns: 1, firewall: 1, wifi: 1, mailauth: 1, dos: 1, bgp: 1, web: 2, cors: 2, api: 2, session: 2, upload: 2, ssrf: 2, clickjack: 2, oauth: 3, kerberos: 3, mfa: 3, rbac: 3, secrets: 3, supply: 4, diskenc: 4, ransom: 4, pqc: 5, chain: 5, zkp: 5, sidechan: 5, ecc: 5, shamir: 5, mpc: 5, logs: 6, incident: 6, social: 6, nids: 6, forensics: 6, cloud: 7, mobile: 7, privesc: 8, memcorrupt: 8, containers: 8, privacy: 9, ai: 9, threat: 10, vuln: 10, redteam: 10, bcp: 10, compliance: 10, heartbleed: 11, log4shell: 11, solarwinds: 11 };
 let G = null, S = null;
 const f = () => S.f;
 const SAVE_PREFIX = "p443:";
@@ -329,12 +330,12 @@ function openGame(id) {
 }
 function showHub() {
   G = null; gameEl.hidden = true; hubEl.hidden = false; backBtn.hidden = true;
+  const panel = document.getElementById("panel"); panel.hidden = true; document.getElementById("cards").hidden = false; renderPassport();
   headTitle.textContent = "PORT-443 QUEST"; headSub.textContent = Object.keys(GAMES).length + " aventures pour comprendre la cybersécurité";
   document.title = "Port-443 Quest";
   const cards = document.getElementById("cards"); cards.replaceChildren();
   cards.className = "";
   const THEMES = ["Cryptographie", "Réseau", "Applications web", "Identité et accès", "Logiciel et données", "Cryptographie avancée", "Détection et réponse", "Cloud et mobile", "Systèmes", "Vie privée et IA", "Organisation et gouvernance", "Cas concrets"];
-  const THEME_OF = { tls: 0, rsa: 0, hash: 0, cryptomisuse: 0, vpn: 1, dns: 1, firewall: 1, wifi: 1, mailauth: 1, dos: 1, bgp: 1, web: 2, cors: 2, api: 2, session: 2, upload: 2, ssrf: 2, clickjack: 2, oauth: 3, kerberos: 3, mfa: 3, rbac: 3, secrets: 3, supply: 4, diskenc: 4, ransom: 4, pqc: 5, chain: 5, zkp: 5, sidechan: 5, ecc: 5, shamir: 5, mpc: 5, logs: 6, incident: 6, social: 6, nids: 6, forensics: 6, cloud: 7, mobile: 7, privesc: 8, memcorrupt: 8, containers: 8, privacy: 9, ai: 9, threat: 10, vuln: 10, redteam: 10, bcp: 10, compliance: 10, heartbleed: 11, log4shell: 11, solarwinds: 11 };
   const games = Object.values(GAMES).sort((a, b) => a.order - b.order);
   THEMES.forEach((name, ti) => {
     const inTheme = games.filter(g => (THEME_OF[g.id] ?? 0) === ti);
@@ -355,5 +356,110 @@ function showHub() {
     });
   });
 }
+
+/* ============ Passeport, révision et défi éclair ============ */
+const THEMES_LIST = ["Cryptographie", "Réseau", "Applications web", "Identité et accès", "Logiciel et données", "Cryptographie avancée", "Détection et réponse", "Cloud et mobile", "Systèmes", "Vie privée et IA", "Organisation et gouvernance", "Cas concrets"];
+function themeIndexOf(id) { return THEME_OF[id] != null ? THEME_OF[id] : 0; }
+function allSaves() {
+  return Object.values(GAMES).map(g => { const sv = readSave(g.id); return { g, sv, done: !!(sv && sv.f && sv.f.end), notes: sv ? sv.notes.length : 0, total: Object.keys(g.notes).length }; });
+}
+function renderPassport() {
+  const el = document.getElementById("hubtools"); el.replaceChildren();
+  const all = allSaves(), done = all.filter(x => x.done).length, notes = all.reduce((a, x) => a + x.notes, 0), totalNotes = all.reduce((a, x) => a + x.total, 0);
+  const box = document.createElement("div"); box.className = "passport";
+  const head = document.createElement("p"); head.className = "pp-head";
+  head.innerHTML = `<b>Passeport</b> · ${done}/${all.length} aventures terminées · ${notes}/${totalNotes} fiches de cours`;
+  box.append(head);
+  const bar = document.createElement("div"); bar.className = "pp-bar"; const fill = document.createElement("span"); fill.style.width = (all.length ? Math.round(100 * done / all.length) : 0) + "%"; bar.append(fill); box.append(bar);
+  const badges = [];
+  const add = (name, ok, why) => badges.push({ name, ok, why });
+  add("Première mission", done >= 1, "Terminer une aventure");
+  add("Dix missions", done >= 10, "Terminer 10 aventures");
+  add("Demi-cité", done >= Math.ceil(all.length / 2), "Terminer la moitié des aventures");
+  add("Carnets pleins", all.filter(x => x.total && x.notes === x.total).length >= 5, "Compléter le carnet de 5 aventures");
+  THEMES_LIST.forEach((t, ti) => { const inT = all.filter(x => themeIndexOf(x.g.id) === ti); if (inT.length) add("Spécialiste : " + t, inT.every(x => x.done), "Terminer toutes les aventures du thème « " + t + " »"); });
+  add("Port-443 complet", all.length > 0 && done === all.length, "Terminer toutes les aventures");
+  const chips = document.createElement("div"); chips.className = "pp-badges";
+  badges.forEach(b => { const c = document.createElement("span"); c.className = "pp-badge" + (b.ok ? " on" : ""); c.textContent = (b.ok ? "★ " : "☆ ") + b.name; c.title = b.why; chips.append(c); });
+  box.append(chips);
+  const tools = document.createElement("div"); tools.className = "pp-tools";
+  const mk = (label, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = "pp-btn"; b.textContent = label; b.addEventListener("click", fn); tools.append(b); };
+  mk("Réviser mes fiches", openReview); mk("Quiz de révision", () => openQuiz(false)); mk("Défi éclair", () => openQuiz(true));
+  box.append(tools); el.append(box);
+}
+function unlockedNotes() {
+  const out = [];
+  Object.values(GAMES).sort((a, b) => a.order - b.order).forEach(g => { const sv = readSave(g.id); if (!sv) return; sv.notes.forEach(id => { if (g.notes[id]) out.push({ game: g.title, gid: g.id, id, title: g.notes[id][0], text: g.notes[id][1] }); }); });
+  return out;
+}
+function panelShell(title) {
+  const panel = document.getElementById("panel"); panel.hidden = false; document.getElementById("cards").hidden = true; panel.replaceChildren();
+  const back = document.createElement("button"); back.type = "button"; back.className = "back"; back.textContent = "← retour au menu"; back.addEventListener("click", showHub);
+  const h = document.createElement("p"); h.className = "pp-head"; h.innerHTML = `<b></b>`; h.querySelector("b").textContent = title;
+  panel.append(back, h); return panel;
+}
+function openReview() {
+  const panel = panelShell("Mes fiches de cours");
+  const notes = unlockedNotes();
+  if (!notes.length) { const p = document.createElement("p"); p.className = "lead"; p.textContent = "Tes fiches apparaissent ici au fil des aventures. Joue une aventure pour commencer ton carnet."; panel.append(p); return; }
+  const search = document.createElement("input"); search.type = "search"; search.className = "pp-search"; search.placeholder = "Chercher dans tes fiches…"; search.setAttribute("aria-label", "Chercher dans tes fiches");
+  const list = document.createElement("div");
+  const render = () => {
+    const q = norm(search.value); list.replaceChildren();
+    let lastGame = "", n = 0;
+    notes.filter(x => !q || norm(x.title + " " + x.text + " " + x.game).includes(q)).forEach(x => {
+      if (x.game !== lastGame) { const gh = document.createElement("p"); gh.className = "theme"; gh.textContent = x.game; list.append(gh); lastGame = x.game; }
+      const card = document.createElement("div"); card.className = "fiche-card"; const t = document.createElement("b"); t.textContent = x.title; const d = document.createElement("p"); d.textContent = x.text; card.append(t, d); list.append(card); n++;
+    });
+    if (!n) { const p = document.createElement("p"); p.className = "lead"; p.textContent = "Aucune fiche ne correspond."; list.append(p); }
+  };
+  search.addEventListener("input", render); panel.append(search, list); render();
+}
+function shuffled(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function openQuiz(timed) {
+  const panel = panelShell(timed ? "Défi éclair" : "Quiz de révision");
+  const pool = unlockedNotes();
+  const titles = Array.from(new Set(pool.map(x => x.title)));
+  if (pool.length < 4 || titles.length < 4) { const p = document.createElement("p"); p.className = "lead"; p.textContent = "Il te faut au moins 4 fiches de cours débloquées pour jouer. Termine quelques étapes dans les aventures, puis reviens."; panel.append(p); return; }
+  const N = Math.min(timed ? 10 : 8, pool.length), qs = shuffled(pool).slice(0, N), SEC = 20;
+  let i = 0, score = 0, streak = 0, timer = null, left = SEC;
+  const box = document.createElement("div"); panel.append(box);
+  const bestKey = "p443:best:" + (timed ? "blitz" : "quiz");
+  const best = () => { try { return +localStorage.getItem(bestKey) || 0; } catch (e) { return 0; } };
+  function finish() {
+    clearInterval(timer); box.replaceChildren();
+    const prev = best(); if (score > prev) { try { localStorage.setItem(bestKey, String(score)); } catch (e) { /* sans sauvegarde */ } }
+    const p = document.createElement("p"); p.className = "pp-head"; p.innerHTML = `Terminé : <b>${score}</b> point${score > 1 ? "s" : ""} sur ${timed ? N * 20 : N * 10} possibles. ${score > prev ? "Nouveau record !" : "Record : " + prev + "."}`;
+    const again = document.createElement("button"); again.type = "button"; again.className = "pp-btn"; again.textContent = "Rejouer"; again.addEventListener("click", () => openQuiz(timed));
+    box.append(p, again);
+  }
+  function show() {
+    clearInterval(timer); box.replaceChildren();
+    if (i >= N) { finish(); return; }
+    const q = qs[i], opts = shuffled([q.title, ...shuffled(titles.filter(t => t !== q.title)).slice(0, 3)]);
+    const head = document.createElement("p"); head.className = "sub"; head.textContent = `Question ${i + 1} / ${N}` + (timed ? ` · score ${score}` : "");
+    const txt = document.createElement("p"); txt.className = "quiz-q"; txt.textContent = "« " + (q.text.length > 330 ? q.text.slice(0, 330) + "…" : q.text) + " »";
+    const ask = document.createElement("p"); ask.textContent = "Quel concept ce passage décrit-il ?";
+    const grid = document.createElement("div"); grid.className = "quiz-opts"; const fb = document.createElement("p"); fb.className = "quiz-fb";
+    let answered = false;
+    const next = document.createElement("button"); next.type = "button"; next.className = "pp-btn"; next.textContent = i + 1 < N ? "Suivante →" : "Voir le score"; next.hidden = true; next.addEventListener("click", () => { i++; show(); });
+    const resolveQ = (choice, btn) => {
+      if (answered) return; answered = true; clearInterval(timer);
+      const ok = choice === q.title;
+      if (ok) { const pts = timed ? 10 + Math.round(10 * left / SEC) : 10; score += pts; streak++; fb.textContent = `Exact : ${q.title} (${q.game}). +${pts}`; fb.className = "quiz-fb good"; }
+      else { streak = 0; fb.textContent = choice == null ? `Temps écoulé. C'était : ${q.title} (${q.game}).` : `Non, c'était : ${q.title} (${q.game}).`; fb.className = "quiz-fb bad"; }
+      [...grid.children].forEach(b => { b.disabled = true; if (b.textContent === q.title) b.classList.add("good"); else if (b === btn) b.classList.add("bad"); });
+      next.hidden = false; next.focus();
+    };
+    opts.forEach(o => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.textContent = o; b.addEventListener("click", () => resolveQ(o, b)); grid.append(b); });
+    box.append(head, txt, ask, grid, fb, next);
+    if (timed) {
+      left = SEC; const clock = document.createElement("p"); clock.className = "quiz-clock"; clock.textContent = left + " s"; box.insertBefore(clock, grid);
+      timer = setInterval(() => { left--; clock.textContent = left + " s"; if (left <= 0) { clearInterval(timer); resolveQ(null, null); } }, 1000);
+    }
+  }
+  show();
+}
+
 backBtn.addEventListener("click", showHub);
 document.body.insertAdjacentHTML("beforeend", '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-mk"/></marker></defs></svg>');

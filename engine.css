@@ -66,3 +66,28 @@ input { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--
 [hidden] { display: none !important; }
 .theme { color: var(--dim); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; margin: 18px 0 8px; }
 .theme:first-child { margin-top: 0; }
+
+.passport { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+.pp-head { margin: 0 0 8px; color: var(--ink); }
+.pp-head b { color: var(--title); }
+.pp-bar { height: 6px; background: var(--cmd-bg); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+.pp-bar span { display: block; height: 100%; background: var(--ok); }
+.pp-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.pp-badge { border: 1px solid var(--line); color: var(--dim); border-radius: 999px; padding: 2px 10px; font-size: .78rem; }
+.pp-badge.on { color: var(--you); border-color: var(--you); }
+.pp-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.pp-btn { background: var(--panel); color: var(--ink); border: 1px solid var(--you); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: .85rem; cursor: pointer; }
+.pp-btn:hover, .pp-btn:focus-visible { background: var(--cmd-bg); outline: none; }
+.pp-search { width: 100%; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font: inherit; font-size: 16px; margin: 8px 0; }
+.fiche-card { border-left: 2px solid var(--note); padding: 4px 0 4px 10px; margin: 0 0 12px; }
+.fiche-card b { color: var(--title); }
+.fiche-card p { margin: 4px 0 0; color: var(--ink); }
+.quiz-q { border-left: 2px solid var(--note); padding-left: 10px; color: var(--ink); }
+.quiz-opts { display: grid; gap: 8px; margin: 10px 0; }
+.opt { text-align: left; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font: inherit; cursor: pointer; }
+.opt:hover:not([disabled]) { border-color: var(--you); }
+.opt.good { border-color: var(--ok); background: #16301f; }
+.opt.bad { border-color: var(--bad); background: #3a1a1a; }
+.opt[disabled] { cursor: default; }
+.quiz-fb { margin: 6px 0; } .quiz-fb.good { color: var(--ok); } .quiz-fb.bad { color: var(--bad); }
+.quiz-clock { color: var(--you); font-weight: 600; margin: 6px 0; }

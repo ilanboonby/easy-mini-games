@@ -453,7 +453,7 @@
     x.forged = n; x.forgedProof = found;
     const L = pw(GEN, found.sp), Rr = (found.t * ymul(found.cp)) % P;
     out(`Mallory sort un faux : (t, s) = (${found.t}, ${found.sp}), en seulement **${n} essais**. Vérification : g^s mod p = ${L} ; t · y^c mod p = ${Rr}. Le vérificateur accepte, et elle n'a jamais connu x.`, "err");
-    out(`Le défi ne prend que ${Q} valeurs : une dizaine d'essais suffit. Voilà pourquoi q doit être énorme : avec q de 256 bits, il faudrait environ 2^256 essais, soit un nombre à 77 chiffres. Il faut aussi hacher toute la déclaration (g, y, t, et le contexte).`, "ok");
+    out(`Le défi ne prend que ${Q} valeurs : une dizaine d'essais suffit. Voilà pourquoi q doit être énorme : avec q de 256 bits, il faudrait environ 2^256 essais, soit un nombre à 78 chiffres. Il faut aussi hacher toute la déclaration (g, y, t, et le contexte).`, "ok");
     note("fiatshamir"); fig("fiatshamir");
     out("Direction la halle des usages : retour à l'atelier (`aller sud`), la place (`aller est`) puis `aller sud`.", "sys");
   }
@@ -542,7 +542,7 @@
           `<path d="M210,175 L119,160 L119,66 L210,66" class="f-ln f-dash"/>` +
           AR(210, 232, 210, 177, "f-pub") + T(210, 247, "entrée : Bob attend ici", "f-s") +
           T(210, 148, "Ève écoute", "f-s ft-bad") +
-          T(8, 264, n ? `${n} tour${n > 1 ? "s" : ""} de suite : une tricheuse passe avec une probabilité de 1/${Math.pow(2, n)}` : "aucun tour joué pour l'instant", "f-s", "start"))
+          T(210, 266, n ? `${n} tour${n > 1 ? "s" : ""} de suite : chance d'une tricheuse = 1/${Math.pow(2, n)}` : "aucun tour joué pour l'instant", "f-s"))
       };
     },
     proba: () => {
@@ -565,10 +565,10 @@
       const col = (arr, x0, cl) => arr.map((s, i) => T(x0, 66 + i * 17, `${i + 1} : défi ${s} -> sortie ${s}`, cl + " f-s", "start")).join("");
       return {
         cap: "Deux films de la même forme : l'un est une vraie preuve, l'autre est monté par Mallory qui connaissait les défis à l'avance. On ne peut pas les distinguer : un film ne prouve rien à un tiers.",
-        svg: SVG(190, "Film réel et film simulé",
-          R(8, 22, 196, 118, "f-ok") + T(106, 42, "film réel (Alice sait)", "f-b ft-ok") + col(real, 22, "") +
-          R(216, 22, 196, 118, "f-bad") + T(314, 42, "film monté (Mallory)", "f-b ft-bad") + col(fake, 230, "") +
-          T(210, 166, "même forme, mêmes statistiques : indiscernables", "f-b") + T(210, 182, "Mallory ne connaît pas le mot", "f-s"))
+        svg: SVG(212, "Film réel et film simulé",
+          R(8, 22, 196, 142, "f-ok") + T(106, 42, "film réel (Alice sait)", "f-b ft-ok") + col(real, 22, "") +
+          R(216, 22, 196, 142, "f-bad") + T(314, 42, "film monté (Mallory)", "f-b ft-bad") + col(fake, 230, "") +
+          T(210, 186, "même forme, mêmes statistiques : indiscernables", "f-b") + T(210, 203, "Mallory ne connaît pas le mot", "f-s"))
       };
     },
     schnorr: () => {

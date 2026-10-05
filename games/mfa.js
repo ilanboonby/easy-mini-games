@@ -52,6 +52,7 @@
   const signMsg = msg => BigInt(modpow(hm(msg), D, N)); // fait DANS la clé : D ne sort jamais
   const verifyMsg = (msg, sig) => BigInt(modpow(sig, E, N)) === hm(msg); // fait par le serveur avec la clé publique (N, E)
   const chal = n => sha256("defi|" + n).slice(0, 8);
+  const curCh = () => chal(F().keyN || 0);
   const shortN = v => { const s = v.toString(); return s.length > 14 ? s.slice(0, 6) + "…" + s.slice(-4) : s; };
 
   /* ---------- SMS, push ---------- */
@@ -143,7 +144,7 @@
 
   /* ---------- Entités ---------- */
   const mailEnt = n => ({ names: ["courrier " + n, "message " + n, "mail " + n, String(n)], label: null,
-    desc: () => `Le courrier ${n} de la boîte de réception. \`examiner courrier ${n}\` pour l'ouvrir.`, onExamine: () => showMail(n), vis: () => true });
+    desc: () => { const d = F().dec[n]; return `Statut : ${d === "signal" ? "signalé (quarantaine)" : d === "keep" ? "gardé" : "lu, pas encore classé"}.`; }, onExamine: () => showMail(n), vis: () => true });
   const ents = {
     ada: { npc: true, names: ["ada", "maitre ada", "doyenne"], label: "Maître Ada", desc: () => "Maître Ada, doyenne de la Guilde, qui garde les clés du Sceau du Coffre. Elle observe tout, sans jamais élever la voix." },
     alice: { npc: true, names: ["alice"], label: "Alice", vis: () => S.room === "portail", desc: () => "Alice, archiviste de la Guilde. Son compte est la cible de l'audit." },
@@ -327,7 +328,7 @@
     }
     if (att === "proxy") {
       if (fac === "key") {
-        const ch = chal(1), msg = FAKE_ORIGIN + "|" + ch, sig = signMsg(msg);
+        const ch = curCh(), msg = FAKE_ORIGIN + "|" + ch, sig = signMsg(msg);
         const okv = verifyMsg(ORIGIN + "|" + ch, sig);
         return { ok: okv, sig, ch, lines: [`Alice arrive sur ${FAKE_ORIGIN}. Le proxy obtient un défi du vrai site : ${ch}.`, `La clé signe l'origine qu'elle voit réellement + le défi : « ${FAKE_ORIGIN}|${ch} » → signature ${shortN(sig)}.`, `Le proxy la renvoie au vrai site, qui vérifie pour SON origine (${ORIGIN}) : la signature ne correspond pas. Refusé.`] };
       }
@@ -497,7 +498,7 @@
     out(`Tu patientes ${n} s. Pendule : ${x.clock} (${stamp(x.clock)}), étape ${step()}, il reste ${30 - (x.clock % 30)} s dans la tranche.`, "sys");
   }
   function useCle(c) {
-    const x = F(), ch = chal(x.keyN || 0);
+    const x = F(), ch = curCh();
     if (!x.bobkey) { out("Tu n'as pas la clé.", "err"); return; }
     if (S.room === "repaire") {
       if (x.proxy !== "key") { out("Pas de demande de la clé en ce moment : lance `simuler proxy` avec la clé active.", "sys"); return; }
@@ -523,7 +524,7 @@
     const x = F();
     const facs = ["none", "sms", "totp", "push", "pushnum", "key"], atts = ["rejeu", "simswap", "proxy", "fatigue"];
     out("Bilan : chaque facteur face à chaque attaque (simulations réelles du jeu)", "title");
-    let tx = "Facteur                        rejeu  SIM   proxy fatig.\n";
+    let tx = "Facteur".padEnd(30) + "rejeu  SIM   proxy fatig.\n";
     const lbl = { none: "mot de passe seul", sms: "+ SMS", totp: "+ TOTP", push: "+ notification simple", pushnum: "+ notification à nombre", key: "+ clé WebAuthn" };
     for (const fc of facs) tx += lbl[fc].padEnd(30) + atts.map(a => (attempt(a, fc).ok ? "✘" : "✔").padEnd(a === "simswap" ? 6 : a === "proxy" ? 6 : 7)).join("") + "\n";
     code(tx);
@@ -646,15 +647,15 @@
         T(210, 222, "Le TOTP ne vérifie pas l'origine.", "f-b ft-bad f-s"))
     }),
     webauthn: fake => {
-      const ch = chal(1), mReal = ORIGIN + "|" + ch, mFake = FAKE_ORIGIN + "|" + ch, sR = signMsg(mReal), sF = signMsg(mFake);
+      const ch = chal(Math.max(0, (F().keyN || 1) - 1)), mReal = ORIGIN + "|" + ch, mFake = FAKE_ORIGIN + "|" + ch, sR = signMsg(mReal), sF = signMsg(mFake);
       return {
         cap: "WebAuthn : la clé signe défi + origine réelle. Sur le faux site, la signature produite ne vaut que pour le faux site.",
         svg: SVG(260, "Défi-réponse WebAuthn lié à l'origine",
-          R(8, 14, 110, 50, "f-pub") + T(63, 33, "Serveur", "f-b ft-pub") + T(63, 50, "clé publique (n, e)", "f-s") +
-          R(160, 14, 96, 50) + T(208, 33, "Navigateur", "f-b") + T(208, 50, "connaît l'origine", "f-s") +
-          R(300, 14, 112, 50, "f-priv") + T(356, 33, "Clé", "f-b ft-priv") + T(356, 50, "clé privée (d)", "f-s") +
+          R(8, 14, 110, 50, "f-pub") + T(63, 33, "Serveur", "f-b ft-pub") + T(63, 50, "clé publique", "f-s") +
+          R(160, 14, 96, 50) + T(208, 33, "Navigateur", "f-b") + T(208, 50, "voit l'origine", "f-s") +
+          R(300, 14, 112, 50, "f-priv") + T(356, 33, "Clé", "f-b ft-priv") + T(356, 50, "clé privée", "f-s") +
           AR(118, 30, 160, 30) + AR(256, 30, 300, 30) + AR(300, 50, 256, 50) + AR(160, 50, 118, 50) +
-          T(8, 86, "défi = " + ch + " ; signature = (empreinte de origine|défi)^d mod n", "f-s", "start") +
+          T(8, 86, "défi = " + ch + " ; signature = H(origine|défi)^d mod n", "f-s", "start") +
           R(8, 98, 404, 70, "f-ok") + T(16, 116, "Vrai site : " + ORIGIN, "f-b ft-ok f-s", "start") +
           T(16, 134, "signature " + shortN(sR), "f-s", "start") + T(16, 152, "le serveur vérifie avec e : ✔ identique", "ft-ok f-s", "start") +
           R(8, 178, 404, 70, "f-bad") + T(16, 196, "Faux site : " + FAKE_ORIGIN, "f-b ft-bad f-s", "start") +

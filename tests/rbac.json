@@ -1,1 +1,16 @@
-[]
+["parler ada","aller nord","examiner registre","droits","droits camille","tester camille lire journaux","tester sam lire registre",
+"creer role comptable","accorder comptable lire registre virements","accorder comptable ecrire virements","roles","affecter camille comptable","affecter zoe comptable","retirer droits camille","tester camille lire journaux","retirer droits zoe",
+"affecter theo comptable",
+"besoins","controler","supprimer employe",
+"creer role responsable","accorder responsable lire virements","accorder responsable approuver virements",
+"creer role sysadmin","accorder sysadmin administrer prod sauvegardes","accorder sysadmin lire journaux",
+"creer role auditeur","accorder auditeur lire registre virements journaux",
+"creer role dev","accorder dev ecrire prod","accorder dev lire journaux",
+"creer role stagiaire","accorder stagiaire lire registre",
+"affecter hugo responsable","affecter lea sysadmin","affecter paul auditeur","affecter noor dev","controler","affecter sam stagiaire","controler",
+"aller sud","aller est","virement hugo hugo","interdire ecrire virements avec approuver virements","droits hugo","retirer hugo comptable","affecter hugo comptable","virement hugo hugo","virement camille hugo",
+"aller ouest","aller sud","auditer","retirer zoe comptable","desactiver yann","desactiver ines","auditer",
+"aller nord","aller ouest","lancer exercice","retirer support ecrire registre","lancer exercice","retirer sam support","lancer exercice",
+"lancer exercice lea","retirer sysadmin administrer prod","lancer exercice lea","demander lea administrer prod 90","demander lea administrer prod 30","valider demande","tester lea administrer prod","attendre 30","tester lea administrer prod",
+"aller est","aller est","abac camille 14 bureau","abac camille 23 domicile","abac paul 14 bureau",
+"aller ouest","parler ada","schema","schema matrice"]

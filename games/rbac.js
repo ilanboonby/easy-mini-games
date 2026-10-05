@@ -210,7 +210,7 @@
   function needsTable() {
     const x = F();
     out("Fiches de poste : le besoin légitime de chaque métier.", "sys");
-    code(x.people.filter(p => !x.disabled[p]).map(p => `${pn(p).padEnd(8)}${(JOBL[jobOf(p)] || "").slice(0, 24).padEnd(25)}${needsOf(p).map(pp).join(", ") || "rien"}`).join("\n"));
+    code(x.people.filter(p => !x.disabled[p]).map(p => `${pn(p).padEnd(8)}${jobOf(p).padEnd(12)}${needsOf(p).map(pp).join(", ") || "rien"}`).join("\n"));
   }
   function showDroits(c) {
     const x = F(), t = tk(c.rawArg), p = t.find(hasP);
@@ -404,7 +404,7 @@
     if (res.ok) {
       out(`AUTORISÉ : accordé par ${res.by.join(" ; ")}.`, "ok");
       if (res.by.includes("accès temporaire")) out(`Cet accès est temporaire : il expire à ${fmtT(x.jit[p].exp)}.`, "sys");
-      if (!(needsOf(p).includes(k))) out(`Remarque : ce n'est pas dans le besoin du poste de ${pn(p)} (${JOBL[jobOf(p)]}). Une permission en trop : à examiner.`, "sys");
+      if (!res.by.includes("accès temporaire") && !needsOf(p).includes(k)) out(`Remarque : ce n'est pas dans le besoin du poste de ${pn(p)} (${JOBL[jobOf(p)]}). Une permission en trop : à examiner.`, "sys");
     } else {
       x.denied = true;
       if (res.dis) out(`REFUSÉ : le compte de ${pn(p)} est désactivé.`, "err");
@@ -427,7 +427,7 @@
       pr.viol.forEach(([a, b]) => parts.push(`CUMUL INTERDIT (${pp(a)} ⟂ ${pp(b)})`));
       if (pr.dorm) parts.push(`DORMANT (${PERS[p].login} j sans connexion)`);
       const ok = !parts.length; n += parts.length;
-      lines.push(`${ok ? "OK " : "XX "}${pn(p).padEnd(7)}${(JOBL[jobOf(p)] || "").slice(0, 16).padEnd(17)}${x.ph >= 5 ? ("j-" + PERS[p].login).padEnd(6) : ""}${ok ? "conforme" : parts.join(" ; ")}`);
+      lines.push(`${ok ? "OK " : "XX "}${pn(p).padEnd(8)}${jobOf(p).padEnd(12)}${x.ph >= 5 ? ("j-" + PERS[p].login).padEnd(6) : ""}${ok ? "conforme" : parts.join(" ; ")}`);
     });
     code(lines.join("\n"));
     return n;
@@ -493,14 +493,14 @@
     const T = (a, r) => check(t, a, r);
     let esc = false, lat = false, admin = false;
     const rg = T("lire", "registre");
-    out(rg.ok ? "Étape 2, reconnaissance, lire registre : AUTORISÉ. Mallory dresse la liste des comptes et repère que Léa est l'administratrice." : "Étape 2, reconnaissance, lire registre : REFUSÉ.", rg.ok ? "err" : "ok");
+    out(rg.ok ? "Étape 2, reconnaissance, lire registre : AUTORISÉ. Mallory dresse la liste des comptes et de leurs rôles : elle sait désormais qui est administrateur." : "Étape 2, reconnaissance, lire registre : REFUSÉ.", rg.ok ? "err" : "ok");
     const jr = T("lire", "journaux");
-    if (jr.ok) out("Lire journaux : AUTORISÉ. Elle apprend les horaires de connexion de Léa et voit qu'on ne surveille pas grand-chose.", "err");
+    if (jr.ok) out("Lire journaux : AUTORISÉ. Elle apprend qui se connecte, quand, et voit qu'on ne surveille pas grand-chose.", "err");
     const wr = T("ecrire", "registre");
     if (wr.ok) { esc = true; out("Étape 3, escalade verticale, écrire registre : AUTORISÉ. Mallory s'affecte elle-même le rôle d'administration dans le Registre. Qui peut modifier les droits peut se donner tous les droits.", "err"); }
     else out("Étape 3, escalade verticale, écrire registre : REFUSÉ. Impossible de modifier ses propres droits (refus par défaut).", "ok");
     const sv = T("lire", "sauvegardes");
-    if (sv.ok) { lat = true; out("Étape 4, mouvement latéral, lire sauvegardes : AUTORISÉ. Une ancienne copie contient le jeton d'administration de Léa : Mallory prend son identité, sans toucher à Sam.", "err"); }
+    if (sv.ok) { lat = true; out("Étape 4, mouvement latéral, lire sauvegardes : AUTORISÉ. Une ancienne copie contient le jeton d'administration d'un autre compte (celui de Léa) : Mallory prend son identité, sans plus avoir besoin du compte volé.", "err"); }
     else out("Étape 4, mouvement latéral, lire sauvegardes : REFUSÉ. Aucune copie de secrets à récupérer.", "ok");
     const ad = T("administrer", "prod");
     if (ad.ok) { admin = true; out(`Étape 5, administrer prod : AUTORISÉ par ${ad.by.join(" ; ")}. Le compte détient déjà les clés de la production.`, "err"); }
@@ -512,10 +512,10 @@
       if (t === "lea" && x.jit.lea && x.jit.lea.exp > x.clock) out("(C'est une fenêtre d'accès temporaire ouverte : l'exposition est limitée à sa durée, mais elle existe. D'où l'intérêt de durées courtes.)", "sys");
     } else {
       out(`Bilan : l'attaque s'arrête là. Rayon d'impact : ${nb} permission(s) sur le compte de ${pn(t)}${rg.ok ? " (de la lecture seule)" : ""}. Un compte compromis ne vaut que ce que ses droits permettent.`, "ok");
-      if (t === "sam" && x.ph === 6) { fig("escalade"); adv(7); return; }
+      if (t === "sam" && x.ph === 6) { fig("escalade", { A: esc, B: lat, any: false, who: t }); adv(7); return; }
       if (t === "lea" && x.ph === 7 && !leaStanding()) { x.exoLea = true; }
     }
-    fig("escalade");
+    fig("escalade", { A: esc, B: lat, any: reached, who: t });
     progress();
   }
 
@@ -681,20 +681,20 @@
       s += T(8, h - 8, "L lire · E écrire · A approuver · D administrer · rouge : en trop", "f-s", "start");
       return { cap: "Matrice personnes × ressources, calculée à partir des rôles actuels. Vert : conforme au besoin du poste. Rouge : permission au-delà du besoin (ou compte qui ne devrait plus rien avoir).", svg: SVG(h, "Matrice des droits", s) };
     },
-    escalade: () => {
-      const A = permsOf("sam").has("ecrire:registre"), B = permsOf("sam").has("lire:sauvegardes"), any = A || B || permsOf("sam").has("administrer:prod");
+    escalade: st => {
+      const A = st.A, B = st.B, any = st.any, who = pn(st.who);
       const bx = (x0, op, t1, t2o, t2c) => R(x0, 112, 196, 48, op ? "f-bad" : "f-ok") + T(x0 + 98, 132, t1, "f-b") + T(x0 + 98, 150, op ? t2o : t2c, "f-s " + (op ? "ft-bad" : "ft-ok"));
       return {
-        cap: any ? "L'exercice sur le compte de Sam : une permission en trop (écrire le registre, lire les sauvegardes) suffit à transformer un stagiaire en administrateur."
-          : "Même chaîne, après correction : les deux voies sont refusées. Le compte de Sam ne vaut plus que ses droits de lecture.",
+        cap: any ? "L'exercice sur le compte de " + who + " : une permission en trop (écrire le registre, lire les sauvegardes, administrer) suffit à faire un administrateur d'un compte ordinaire."
+          : "Même chaîne, après correction : toutes les voies sont refusées. Le compte de " + who + " ne vaut plus que ses droits ordinaires.",
         svg: SVG(270, "Chaîne d'escalade",
-          R(60, 6, 300, 28, "f-bad") + T(210, 25, "mot de passe de Sam volé", "f-b") + AR(210, 34, 210, 52) +
+          R(60, 6, 300, 28, "f-bad") + T(210, 25, "mot de passe de " + who + " volé", "f-b") + AR(210, 34, 210, 52) +
           R(60, 52, 300, 28) + T(210, 71, "connexion réussie (authentifiée)", "f-s") + AR(150, 80, 108, 110) + AR(270, 80, 312, 110) +
           bx(8, A, "écrire registre", "s'ajoute « admin »", "refusé : bloqué") + bx(216, B, "lire sauvegardes", "jeton de Léa : latéral", "refusé : bloqué") +
           T(106, 176, "escalade verticale", "f-s") + T(314, 176, "mouvement latéral", "f-s") +
           AR(106, 160, 150, 192, A ? "f-bad" : "f-dash") + AR(314, 160, 270, 192, B ? "f-bad" : "f-dash") +
           R(60, 192, 300, 44, any ? "f-bad" : "f-ok") + T(210, 212, "administrer prod", "f-b") + T(210, 228, any ? "TOTAL : tout est compromis" : "hors d'atteinte", "f-s " + (any ? "ft-bad" : "ft-ok")) +
-          T(210, 258, "Sam n'avait besoin que de « lire registre ».", "f-s"))
+          T(210, 258, "Moins le compte a de droits, moins il rapporte.", "f-s"))
       };
     },
     separation: ok => ({
@@ -724,7 +724,7 @@
           LN(X(22), 108, X(22), 20, "f-bad f-dash") + T(X(22) - 4, 122, "22 h : compte volé", "f-s ft-bad", "end") +
           T(8, 150, standing ? "Aujourd'hui : droit permanent encore en place." : "Aujourd'hui : plus de droit permanent.", "f-s " + (standing ? "ft-bad" : "ft-ok"), "start") +
           T(8, 172, "Permanent : accès total à 22 h.  Juste-à-temps : rien.", "f-s", "start") +
-          T(8, 190, "Fenêtre : demande, approbation par un tiers, durée courte, journal.", "f-s", "start"))
+          T(8, 190, "Fenêtre : demande, tiers, durée courte.", "f-s", "start"))
       };
     },
     abac: last => ({
@@ -755,7 +755,7 @@
     },
     refig(name) {
       const x = F();
-      fig(name, name === "separation" ? (sodRule() && !anyViol().length) : name === "temporaire" ? leaStanding() : name === "abac" ? x.abacLast : undefined);
+      fig(name, name === "escalade" ? { A: permsOf("sam").has("ecrire:registre"), B: permsOf("sam").has("lire:sauvegardes"), any: vulnerable("sam"), who: "sam" } : name === "separation" ? (sodRule() && !anyViol().length) : name === "temporaire" ? leaStanding() : name === "abac" ? x.abacLast : undefined);
     },
     figAlias: { matrice: ["droits", "matrix", "rbac", "roles"], escalade: ["attaque", "exercice", "mallory", "chaine"], separation: ["taches", "tâches", "quatre", "yeux", "sod"], temporaire: ["jit", "juste", "temps", "admin"], abac: ["attributs", "contexte", "politique"] },
     help: "Moteur de droits : `droits [‹personne›]` · `roles` · `besoins` · `creer role ‹nom›` · `accorder ‹rôle› ‹action› ‹ressources›` · `affecter ‹personne› ‹rôle›` · `retirer ‹personne› ‹rôle›` / `retirer ‹rôle› ‹action› ‹ressource›` / `retirer droits ‹personne›` · `supprimer ‹rôle›` · `tester ‹personne› ‹action› ‹ressource›` · `controler` · `interdire ‹a› avec ‹b›` · `virement ‹saisit› ‹approuve›` · `auditer` · `desactiver ‹personne›` · `lancer exercice [‹personne›]` · `demander ‹personne› administrer prod ‹minutes›` · `valider demande` · `attendre ‹minutes›` · `abac ‹personne› ‹heure› ‹lieu›`. Actions : lire, ecrire, approuver, administrer.",

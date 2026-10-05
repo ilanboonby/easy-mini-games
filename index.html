@@ -2,441 +2,753 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TLS Quest</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap">
 <style>
+/* Mise en page : un terminal plein écran. Journal défilant, barre de raccourcis, ligne de saisie. */
 :root {
-  --bg: #f5f6fa; --card: #ffffff; --ink: #1c2230; --muted: #5d667a; --line: #dde1ea;
-  --accent: #3b5bdb; --accent-ink: #ffffff; --ok: #1f8a4c; --ok-bg: #e3f6ea;
-  --bad: #c92a2a; --bad-bg: #fde8e8; --warn-bg: #fff4d6; --code: #eef0f6;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #12151d; --card: #1b2030; --ink: #e8ebf3; --muted: #9aa3b8; --line: #2d3550;
-    --accent: #7c93ff; --accent-ink: #0d1020; --ok: #5fd08a; --ok-bg: #16301f;
-    --bad: #ff7b7b; --bad-bg: #3a1a1a; --warn-bg: #3a3112; --code: #232a3f; color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-    --bg: #12151d; --card: #1b2030; --ink: #e8ebf3; --muted: #9aa3b8; --line: #2d3550;
-    --accent: #7c93ff; --accent-ink: #0d1020; --ok: #5fd08a; --ok-bg: #16301f;
-    --bad: #ff7b7b; --bad-bg: #3a1a1a; --warn-bg: #3a3112; --code: #232a3f; color-scheme: dark;
+  color-scheme: dark;
+  --bg: #0f1218; --panel: #161b25; --line: #2a3243;
+  --ink: #d8dee9; --dim: #7f8aa0; --you: #ffb454; --npc: #7fd1d9;
+  --title: #f2f4f8; --ok: #8fd18a; --bad: #ff7676; --note: #c3a6ff; --cmd-bg: #222a3a;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
-main { max-width: 820px; margin: 0 auto; padding: 16px; }
-h1 { font-size: 1.5rem; margin: 8px 0 0; }
-h2 { font-size: 1.25rem; margin: 0 0 8px; }
-.sub { color: var(--muted); margin: 0 0 16px; }
-nav { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 16px; }
-nav button { flex: 1 1 130px; text-align: left; padding: 8px 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 8px; cursor: pointer; font: inherit; font-size: .9rem; }
-nav button[disabled] { opacity: .45; cursor: not-allowed; }
-nav button.cur { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
-nav .stars { display: block; font-size: .8rem; color: var(--muted); }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
-.story { background: var(--warn-bg); border-radius: 8px; padding: 10px 12px; margin: 0 0 14px; }
-button.btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 9px 16px; font: inherit; font-weight: 600; cursor: pointer; }
-button.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
-button.btn[disabled] { opacity: .5; cursor: not-allowed; }
-.opts { display: grid; gap: 8px; margin: 12px 0; }
-.opt { text-align: left; padding: 10px 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 8px; cursor: pointer; font: inherit; }
-.opt:hover:not([disabled]) { border-color: var(--accent); }
-.opt.good { background: var(--ok-bg); border-color: var(--ok); }
-.opt.bad { background: var(--bad-bg); border-color: var(--bad); }
-.opt[disabled] { cursor: default; }
-.fb { padding: 10px 12px; border-radius: 8px; margin: 10px 0; }
-.fb.ok { background: var(--ok-bg); } .fb.ko { background: var(--bad-bg); }
-code, .mono { font-family: ui-monospace, Menlo, Consolas, monospace; background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: .92em; }
-.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
-.actor { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
-.actor h3 { margin: 0 0 6px; font-size: 1rem; }
-.eve { border-color: var(--bad); }
-.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: .95rem; }
-.kv dt { color: var(--muted); } .kv dd { margin: 0; font-weight: 600; word-break: break-word; }
-input[type=range] { width: 100%; }
-input[type=number] { width: 90px; padding: 6px; font: inherit; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); }
-.order li { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px; background: var(--card); }
-.order li.good { background: var(--ok-bg); border-color: var(--ok); }
-.order li.bad { background: var(--bad-bg); border-color: var(--bad); }
-.order { list-style: none; padding: 0; margin: 12px 0; }
-.order .lbl { flex: 1; } .order small { display: block; color: var(--muted); }
-.order button { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 6px; width: 32px; height: 32px; cursor: pointer; }
-.log { background: var(--code); border-radius: 8px; padding: 10px 12px; font-size: .92rem; min-height: 60px; }
-.log p { margin: 4px 0; }
-.sw { display: flex; align-items: center; gap: 8px; }
-.tag { display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: .8rem; font-weight: 600; }
-.tag.ok { background: var(--ok-bg); color: var(--ok); } .tag.ko { background: var(--bad-bg); color: var(--bad); }
-.cert { font-size: .95rem; }
-.fiche li { margin-bottom: 6px; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 var(--mono); }
+.app { height: 100%; display: flex; flex-direction: column; max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 12px; }
+header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+header h1 { margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: .04em; color: var(--title); }
+header span { color: var(--dim); font-size: .8rem; }
+#log { flex: 1; min-height: 0; overflow-y: auto; padding-block: 12px; }
+#log p { margin: 0 0 .7em; white-space: pre-wrap; overflow-wrap: anywhere; }
+#log .title { color: var(--title); font-weight: 600; margin-top: 1em; letter-spacing: .03em; }
+#log .you { color: var(--you); }
+#log .npc { color: var(--npc); }
+#log .sys { color: var(--dim); }
+#log .err { color: var(--bad); }
+#log .ok { color: var(--ok); }
+#log .note { color: var(--note); border-left: 2px solid var(--note); padding-left: 10px; }
+#log b { color: var(--title); font-weight: 600; }
+code.cmd { background: var(--cmd-bg); color: var(--you); padding: 0 5px; border-radius: 4px; cursor: pointer; font: inherit; font-size: .95em; }
+code.cmd:hover, code.cmd:focus-visible { outline: 1px solid var(--you); }
+.bar { display: flex; flex-wrap: wrap; gap: 6px; padding-block: 8px; }
+.bar button { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; font: inherit; font-size: .82rem; cursor: pointer; }
+.bar button:hover, .bar button:focus-visible { border-color: var(--you); outline: none; }
+.bar .go { color: var(--npc); }
+form { display: flex; gap: 8px; align-items: center; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 10px; }
+form:focus-within { border-color: var(--you); }
+form label { color: var(--you); font-weight: 600; }
+input { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--ink); font: inherit; font-size: 16px; padding: 6px 0; outline: none; }
+::selection { background: #3a4766; }
 </style>
 </head>
 <body>
-<main>
-  <h1>🔐 TLS Quest</h1>
-  <p class="sub">Comprendre pourquoi (et comment) le petit cadenas du navigateur te protège — en jouant.</p>
-  <nav id="nav" aria-label="Niveaux"></nav>
-  <div id="stage"></div>
-  <p class="sub" style="text-align:center"><button class="btn ghost" id="reset">Réinitialiser la progression</button></p>
-</main>
+<div class="app">
+  <header><h1>LE COURRIER DE PORT-443</h1><span>aventure textuelle · TLS</span></header>
+  <div id="log" role="log" aria-live="polite"></div>
+  <div class="bar" id="bar"></div>
+  <form id="form" autocomplete="off">
+    <label for="cmd">&gt;</label>
+    <input id="cmd" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="tape une commande, ou clique sur celles en orange">
+  </form>
+</div>
 
 <script>
 "use strict";
 
-/* ---------- petits utilitaires ---------- */
-function h(tag, attrs, ...kids) {
-  const e = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs || {})) {
-    if (k === "class") e.className = v;
-    else if (k === "html") e.innerHTML = v;
-    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
-    else if (v === true) e.setAttribute(k, "");
-    else if (v !== false && v != null) e.setAttribute(k, v);
-  }
-  for (const kid of kids.flat()) if (kid != null) e.append(kid.nodeType ? kid : document.createTextNode(kid));
-  return e;
-}
-function shuffle(a) {
-  a = a.slice();
-  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
-  return a;
-}
+/* ============ Utilitaires ============ */
 function modpow(b, e, m) {
   b = BigInt(b) % BigInt(m); e = BigInt(e); m = BigInt(m);
   let r = 1n;
   while (e > 0n) { if (e & 1n) r = (r * b) % m; b = (b * b) % m; e >>= 1n; }
-  return r;
+  return Number(r);
 }
-const store = {
-  load() { try { return JSON.parse(localStorage.getItem("tlsquest") || "null"); } catch (e) { return null; } },
-  save(s) { try { localStorage.setItem("tlsquest", JSON.stringify(s)); } catch (e) { /* stockage indisponible : on joue sans */ } },
-  clear() { try { localStorage.removeItem("tlsquest"); } catch (e) { /* idem */ } }
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/['’\-]/g, " ").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+const ART = new Set(["le", "la", "les", "l", "un", "une", "des", "du", "de", "d", "mon", "ma", "mes", "ce", "cette", "ces", "en", "et"]);
+const SEP = new Set(["sur", "avec", "a", "au", "aux", "vers", "dans", "pour", "contre"]);
+
+const P = 23, G = 5, B_SECRET = 15, B_PUB = modpow(G, B_SECRET, P); // 19 : la valeur publique de Hellman
+const TODAY = "5 octobre 2026";
+
+/* ============ État ============ */
+const SAVE_KEY = "courrier443";
+function fresh() { return { room: "guilde", inv: [], f: {}, notes: [], a: null, table: [], hobj: "", hl: 0 }; }
+let S = fresh();
+function load() { try { const v = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); return v && v.room ? v : null; } catch (e) { return null; } }
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* sans sauvegarde */ } }
+function wipe() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* idem */ } }
+
+/* ============ Sortie ============ */
+const logEl = document.getElementById("log");
+function fmt(t) {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+    .replace(/`(.+?)`/g, (m, c) => `<code class="cmd" tabindex="0" role="button">${c}</code>`);
+}
+function out(t, cls) {
+  const p = document.createElement("p"); p.className = cls || "";
+  p.innerHTML = fmt(t); logEl.append(p); logEl.scrollTop = logEl.scrollHeight;
+}
+const say = (who, t) => out(`**${who}** : « ${t} »`, "npc");
+
+/* ============ Carnet (notes de cours débloquées en jouant) ============ */
+const NOTES = {
+  asym: ["Clé publique, clé privée", "Chaque personne a une paire de clés. La publique se distribue (cadenas ouvert) : on s'en sert pour CHIFFRER à son attention. La privée reste secrète : elle seule DÉCHIFFRE."],
+  sig: ["Signature", "Signer = appliquer sa clé privée. Tout le monde peut vérifier avec la clé publique, personne d'autre ne peut produire la signature. Elle prouve l'auteur et que le contenu n'a pas changé."],
+  sym: ["Clé de session symétrique", "Le chiffrement asymétrique est lent. TLS s'en sert pour s'entendre sur une petite clé symétrique commune (type AES), rapide, qui chiffre ensuite toute la conversation."],
+  dh: ["Diffie-Hellman", "Chacun garde un nombre secret et publie g^secret mod p. En combinant la valeur de l'autre avec son propre secret, les deux obtiennent le même résultat : (g^a)^b = (g^b)^a. L'espion voit p, g, A, B mais retrouver a ou b (logarithme discret) est infaisable avec de grands nombres."],
+  pfs: ["Confidentialité persistante", "Les secrets Diffie-Hellman sont éphémères : jetés après la session. Voler la clé du serveur plus tard ne permet pas de relire les anciennes conversations enregistrées."],
+  cert: ["Certificat et chaîne de confiance", "Un certificat lie une clé publique à un nom, signé par une autorité (CA). Le navigateur vérifie : 1) le nom correspond au site, 2) les dates sont valides, 3) la chaîne de signatures remonte à une autorité racine qu'il connaît. Un certificat auto-signé ne prouve rien."],
+  mitm: ["Homme du milieu", "Sans authentification, chiffrer ne suffit pas : un attaquant peut établir une connexion chiffrée avec chaque côté et tout relire. Les certificats servent à s'assurer de QUI se trouve de l'autre côté."],
+  hs: ["Le handshake TLS 1.3", "ClientHello (suites + sa moitié Diffie-Hellman) → ServerHello (choix + sa moitié) → Certificate + CertificateVerify (identité) → Finished serveur → Finished client (intégrité de tout l'échange) → données chiffrées."]
+};
+function note(id) {
+  if (S.notes.includes(id)) return;
+  S.notes.push(id);
+  out(`✎ Nouvelle entrée dans ton carnet : **${NOTES[id][0]}**  (\`carnet\` pour relire)`, "note");
+}
+
+/* ============ Entités ============ */
+// vis: visible ou non ; npc: personnage ; take: ramassable ; label: libellé dans la liste "Tu vois"
+const f = () => S.f;
+const ENT = {
+  /* objets d'inventaire */
+  lettre: { names: ["lettre", "lettre alice", "pli", "enveloppe"], label: "la lettre d'Alice",
+    desc: () => f().sealed
+      ? "La lettre d'Alice, fermée avec le cadenas de la banque. Seule la clé privée de la banque peut l'ouvrir. Adressée à : **banque-du-port**."
+      : "La lettre d'Alice : « À l'attention de banque-du-port. Merci de virer 4 200 pièces d'or vers le compte de Bob. » Elle n'est pas protégée : n'importe qui peut la lire en chemin." },
+  bordereau: { names: ["bordereau", "recu", "accuse"], label: "le bordereau",
+    desc: () => f().signed
+      ? "Le bordereau de livraison, portant ta signature. N'importe qui peut la vérifier avec ton empreinte publique, personne ne peut la falsifier."
+      : "Un bordereau de livraison vierge. La banque voudra savoir qui livre : il faut le signer." },
+  sceau: { names: ["sceau", "sceau personnel", "tampon", "cle privee"], label: "ton sceau personnel",
+    desc: () => "Ton sceau personnel : ta **clé privée**. Il ne quitte jamais ta poche. Appliqué sur un document, il laisse une marque que lui seul peut produire, mais que tout le monde peut vérifier." },
+  cadcour: { names: ["cadenas courrier", "mon cadenas", "cadenas personnel"], label: "ton cadenas ouvert",
+    desc: () => "Ton cadenas ouvert : ta **clé publique**. Tu peux en distribuer autant que tu veux : il sert à chiffrer à ton intention. Rien à signer avec." },
+  cle: { names: ["cle de session", "cle session", "cle", "cle legere"], label: "la clé de session",
+    desc: () => `Une petite clé de cuivre gravée du nombre **${f().secretVal}**, la **clé de session** que toi et la banque partagerez. Légère, symétrique : la même clé ferme et ouvre.` },
+
+  /* Guilde */
+  ada: { npc: true, names: ["ada", "maitre ada", "doyenne", "mentor"], label: "Maître Ada, doyenne de la Guilde",
+    desc: () => "Maître Ada, doyenne de la Guilde, des lunettes sur le front et des piles de lettres en équilibre sur le comptoir. Elle a vu passer tous les types de messages, et tous les types de tricheurs." },
+
+  /* Place */
+  panneau: { names: ["panneau", "affichage"], label: "un panneau",
+    desc: () => "Le panneau indique : **Guilde** (ouest) · **Atelier de Dame Rivest** (nord) · **Bureau des Sceaux** (est, et la **Banque du Port** juste derrière) · **Café Wi-Fi Gratuit** (sud)." },
+  fontaine: { names: ["fontaine"], label: "", desc: () => "Une fontaine où les courriers se retrouvent. Rien d'utile, sauf que tout le monde peut voir tout le monde y parler." },
+
+  /* Atelier */
+  rivest: { npc: true, names: ["rivest", "dame rivest", "serruriere"], label: "Dame Rivest, serrurière",
+    desc: () => "Dame Rivest, serrurière, des mains tachées d'huile et un trousseau énorme à la ceinture. Elle ne parle que de clés." },
+  annuaire: { names: ["annuaire"], label: "l'annuaire public", desc: () => "Un immense annuaire mural : chaque habitant·e y a épinglé son cadenas ouvert, étiqueté à son nom. Celui de la **banque-du-port** est là, au milieu." },
+  cadbanque: { take: true, names: ["cadenas banque", "cadenas public", "cadenas banque du port"], label: "le cadenas ouvert de la banque",
+    desc: () => "Le cadenas ouvert de la banque : sa **clé publique**. N'importe qui peut le prendre et s'en servir pour fermer un message destiné à la banque. Seule la banque, avec sa clé privée, saura l'ouvrir." },
+
+  /* Tour */
+  peintres: { npc: true, names: ["peintres", "peintre", "hellman", "diffie"], label: "Diffie et Hellman, les peintres",
+    desc: () => "Diffie, volubile, et Hellman, méthodique, ont inventé un tour de passe-passe pour s'accorder sur un secret devant tout le monde." },
+  corbeau: { npc: true, names: ["eve", "corbeau", "oiseau"], label: "Ève, le corbeau",
+    desc: () => "Un corbeau au regard vif. C'est Ève. Elle répète à voix haute tout ce qu'elle entend." },
+  tableau: { names: ["tableau", "mur", "chiffres"], label: "un tableau noirci de chiffres",
+    desc: () => `Écrit à la craie, en gros :  **p = ${P}**  et  **g = ${G}**. Ces deux nombres sont publics.\nDessous, la règle : « Chacun choisit un secret. On publie g^secret mod p. On combine la valeur de l'autre avec son secret. »\nTu as un boulier de poche : \`calc ${G}^3 mod ${P}\` calcule 5 puissance 3 modulo 23.` },
+  coffre: { names: ["coffre", "coffre fort"], label: "un coffre de fer",
+    desc: () => f().key ? "Le coffre est ouvert et vide : tu as pris la clé de session." : "Un coffre de fer à serrure à chiffres. Il s'ouvre quand on énonce le **secret commun** (`dire ‹nombre›`). Qui n'a pas participé à l'échange ne peut pas le connaître." },
+
+  /* Bureau */
+  capitaine: { npc: true, names: ["capitaine", "chaine", "capitaine chaine"], label: "le Capitaine Chaîne",
+    desc: () => "Le Capitaine Chaîne : raide, moustache impeccable, un sceau d'argent au revers. Il ne croit que ce qui est signé par quelqu'un de confiance, lui-même signé par quelqu'un de confiance…" },
+  registre: { names: ["registre", "autorites", "livre"], label: "le registre des autorités de confiance",
+    desc: () => `Le registre des **autorités de confiance** de ton navigateur... pardon, de ta Guilde :\n  1. Chancellerie Royale\n  2. Guilde des Notaires\nTout ce qui n'y remonte pas, par une chaîne de signatures, n'est pas fiable.\nDate du jour : ${TODAY}.` },
+  rouge: { cour: "rouge", names: ["courrier rouge", "rouge", "certificat rouge"], label: "le courrier rouge", desc: () => certText("rouge") },
+  vert: { cour: "vert", names: ["courrier vert", "vert", "certificat vert"], label: "le courrier vert", desc: () => certText("vert") },
+  bleu: { cour: "bleu", names: ["courrier bleu", "bleu", "certificat bleu"], label: "le courrier bleu", desc: () => certText("bleu") },
+  jaune: { cour: "jaune", names: ["courrier jaune", "jaune", "certificat jaune"], label: "le courrier jaune", desc: () => certText("jaune") },
+
+  /* Café */
+  mallory: { npc: true, names: ["mallory", "silhouette", "capuche", "inconnu", "faux courrier", "courrier encapuchonne"], label: "une silhouette encapuchonnée",
+    desc: () => f().malloryDone ? "Mallory a disparu par la porte de service." : "Une silhouette encapuchonnée, sac de courrier en bandoulière. Elle sourit trop." },
+  cadmal: { vis: () => f().malloryOffer && !f().malloryDone, names: ["cadenas mallory", "cadenas tendu", "nouveau cadenas", "cadenas silhouette"], label: "le cadenas qu'elle te tend",
+    desc: () => "Un cadenas ouvert, flambant neuf. « La clé de la banque a changé, celui de l'annuaire est périmé », dit la silhouette. Mais qui a fabriqué ce cadenas ?" },
+  certmal: { vis: () => f().certShown && !f().malloryDone, names: ["certificat", "certificat mallory", "parchemin"], label: "son certificat",
+    desc: () => `Le certificat de la silhouette :\n  Délivré à    : banque-du-port\n  Émetteur     : « Autorité du Café Wi-Fi »\n  Chaîne       : Autorité du Café Wi-Fi (auto-déclarée), aucune autorité de ton registre\n  Valide du 1 sept. 2026 au 1 sept. 2027\nNom ✔  Dates ✔  Chaîne ✘` },
+  comptoir: { names: ["comptoir", "bar", "wifi", "enseigne"], label: "", desc: () => "« WI-FI GRATUIT. Aucun mot de passe. » Gratuit… et tout le monde peut écouter." },
+
+  /* Banque */
+  vault: { npc: true, names: ["vault", "madame vault", "banquiere", "guichet"], label: "Madame Vault, banquière",
+    desc: () => "Madame Vault, banquière, droite comme une règle. Le coffre-fort de la banque est derrière elle. Elle ne fait confiance qu'à ce qui est correctement protocolé." },
+  table: { names: ["table", "cartes", "protocole"], label: "la table du protocole (six cartes)",
+    desc: () => {
+      const cards = CARDS.map(c => `  ${S.table.includes(c.n) ? "[posée]" : "[     ]"} ${c.title}`).join("\n");
+      return `Six cartes à poser dans l'ordre d'une vraie conversation sécurisée (\`poser hello client\` par exemple) :\n${cards}`;
+    } },
+};
+const CARDS = [
+  { n: 1, id: "c1", title: "hello-client", names: ["hello client", "client hello", "clienthello", "carte 1"],
+    explain: "**ClientHello** : « Bonjour, voici les suites de chiffrement que je connais, et ma moitié d'échange Diffie-Hellman. » Le client parle en premier.",
+    wrong: "Quelqu'un doit bien ouvrir la conversation, et ce n'est pas le serveur : c'est le client qui se présente en premier." },
+  { n: 2, id: "c2", title: "hello-serveur", names: ["hello serveur", "server hello", "serverhello", "carte 2"],
+    explain: "**ServerHello** : « Je choisis cette suite, et voici ma moitié Diffie-Hellman. » Dès cet instant, les deux côtés peuvent calculer le secret commun, et tout ce qui suit est chiffré.",
+    wrong: "Le serveur répond au client avant de montrer quoi que ce soit d'autre : il choisit la suite et donne sa moitié du secret." },
+  { n: 3, id: "c3", title: "certificat", names: ["certificat", "certificate", "carte 3"],
+    explain: "**Certificate + CertificateVerify** : le serveur présente son certificat et prouve, par une signature de la conversation, qu'il détient la clé privée correspondante.",
+    wrong: "Le secret commun existe, mais avec qui ? Le serveur doit maintenant prouver son identité." },
+  { n: 4, id: "c4", title: "fin-serveur", names: ["fin serveur", "finished serveur", "serveur finished", "carte 4"],
+    explain: "**Finished (serveur)** : un condensé de tout l'échange, calculé avec les clés. Si quelqu'un a modifié un message en route, il ne tombera pas juste.",
+    wrong: "Avant les données, le serveur confirme que tout l'échange est intact : un condensé de ce qui a été dit." },
+  { n: 5, id: "c5", title: "fin-client", names: ["fin client", "finished client", "client finished", "carte 5"],
+    explain: "**Finished (client)** : le client fait la même vérification de son côté. Les deux parties sont d'accord sur l'historique de l'échange.",
+    wrong: "Le client confirme à son tour l'intégrité de l'échange, avant d'envoyer quoi que ce soit." },
+  { n: 6, id: "c6", title: "données", names: ["donnees", "donnees chiffrees", "application data", "carte 6"],
+    explain: "**Données applicatives** : enfin, le vrai message, chiffré en symétrique avec la clé de session. Rapide et solide.",
+    wrong: "Les données ne partent qu'une fois tout le reste en place, en toute fin." },
+];
+CARDS.forEach(c => { ENT[c.id] = { card: c, names: c.names, label: "", desc: () => c.explain }; });
+
+const COURIERS = {
+  rouge: { to: "banque-du-port", issuer: "Sous-Chancellerie du Port ← Chancellerie Royale (dans ton registre)", from: "1 sept. 2026", until: "1 déc. 2026", ok: true,
+    why: "Nom exact, dates en cours, et la chaîne Sous-Chancellerie → Chancellerie Royale aboutit à une autorité de ton registre. Les trois contrôles passent." },
+  vert: { to: "banque-du-port", issuer: "banque-du-port (auto-signé)", from: "1 janv. 2026", until: "1 janv. 2036", ok: false,
+    why: "**Auto-signé** : le courrier vert s'est certifié lui-même. N'importe qui peut en fabriquer autant : aucune autorité n'a vérifié son identité." },
+  bleu: { to: "banque-du-port", issuer: "Chancellerie Royale (dans ton registre)", from: "1 janv. 2024", until: "1 avr. 2025", ok: false,
+    why: "**Expiré** : valable jusqu'au 1 avril 2025. Les dates limitent la durée pendant laquelle une clé volée reste exploitable." },
+  jaune: { to: "banque-du-p0rt", issuer: "Sous-Chancellerie du Port ← Chancellerie Royale (dans ton registre)", from: "1 sept. 2026", until: "1 déc. 2026", ok: false,
+    why: "**Mauvais nom** : « banque-du-p0rt » avec un zéro. Le certificat est valide, mais pour un autre site. Une imitation du nom ne vaut rien." }
+};
+function certText(c) {
+  const x = COURIERS[c];
+  return `Le courrier ${c} prétend représenter la banque. Son certificat :\n  Délivré à    : ${x.to}\n  Chaîne       : ${x.issuer}\n  Valide du ${x.from} au ${x.until}\nÀ toi de vérifier les trois points : nom, dates, chaîne.`;
+}
+
+/* ============ Lieux ============ */
+const ROOMS = {
+  guilde: { name: "La Guilde des Courriers", alias: ["guilde"], ents: ["ada"], exits: { est: "place" },
+    desc: () => "Une salle basse aux murs couverts de cartes de routes. Des sacoches pendent aux crochets, des tampons s'alignent sur une étagère. Maître Ada trie du courrier derrière son comptoir. Dehors, la Place du Port." },
+  place: { name: "La Place du Port", alias: ["place", "port"], ents: ["panneau", "fontaine"], exits: { ouest: "guilde", nord: "atelier", est: "bureau", sud: "cafe" },
+    desc: () => "Toutes les routes de Port-443 passent ici. Des courriers pressés se croisent autour d'une fontaine. Un panneau indique les directions." },
+  atelier: { name: "L'Atelier de Dame Rivest", alias: ["atelier", "serrurier", "serrurerie"], ents: ["rivest", "annuaire", "cadbanque"], exits: { sud: "place", nord: "tour" },
+    desc: () => "Des centaines de cadenas ouverts pendent aux murs, étiquetés au nom de chacun·e. Sur un grand annuaire public, les habitant·e·s ont épinglé le leur. Dame Rivest polit une clé. Un escalier en colimaçon monte vers la Tour des Peintres (nord)." },
+  tour: { name: "La Tour des Peintres", alias: ["tour", "peintres"], ents: ["peintres", "corbeau", "tableau", "coffre"], exits: { sud: "atelier" },
+    desc: () => "Au sommet de l'escalier, un atelier baigné de lumière. Diffie et Hellman discutent près d'un coffre de fer. Un tableau noirci de chiffres couvre un mur. Sur le rebord de la fenêtre, un corbeau écoute tout." },
+  bureau: { name: "Le Bureau des Sceaux", alias: ["bureau", "sceaux"], ents: ["capitaine", "registre", "rouge", "vert", "bleu", "jaune"], exits: { ouest: "place", est: "banque" },
+    desc: () => "Un hall solennel. Le Capitaine Chaîne contrôle l'identité de toute personne qui prétend représenter une institution. Un registre liste les autorités de confiance. Quatre courriers (rouge, vert, bleu, jaune) attendent, chacun avec un parchemin : tous disent venir de la banque. À l'est, la porte de la Banque du Port." },
+  cafe: { name: "Le café « Wi-Fi Gratuit »", alias: ["cafe", "wifi"], ents: ["mallory", "cadmal", "certmal", "comptoir"], exits: { nord: "place" },
+    desc: () => "Un café bondé, enseigne criarde : WI-FI GRATUIT, ICI TOUS LES CHEMINS PASSENT. Les courriers font halte, posent leurs sacoches, et ne remarquent pas qui les observe. Une silhouette encapuchonnée te fait signe depuis le fond." },
+  banque: { name: "La Banque du Port", alias: ["banque"], ents: ["vault", "table", "c1", "c2", "c3", "c4", "c5", "c6"], exits: { ouest: "bureau" },
+    desc: () => "Un hall de marbre, silencieux. Derrière le guichet, Madame Vault. Sur une table, six cartes sont étalées, face visible. Une bonne conversation sécurisée suit un protocole précis." },
 };
 
-/* ---------- moteur de quiz réutilisable ---------- */
-// questions: [{q, opts:[...], good:index, why}] ; onDone(erreurs)
-function quiz(box, questions, onDone) {
-  let i = 0, errors = 0;
-  function show() {
-    box.replaceChildren();
-    const q = questions[i];
-    const fb = h("div");
-    const next = h("button", { class: "btn", hidden: true, onclick: () => { i++; i < questions.length ? show() : onDone(errors); } },
-      i + 1 < questions.length ? "Question suivante →" : "Terminer");
-    const order = shuffle(q.opts.map((t, idx) => ({ t, idx })));
-    const btns = order.map(({ t, idx }) => {
-      const b = h("button", { class: "opt", onclick: () => {
-        if (idx === q.good) {
-          b.classList.add("good");
-          btns.forEach(x => x.disabled = true);
-          fb.replaceChildren(h("div", { class: "fb ok", html: "✅ " + q.why }));
-          next.hidden = false;
-        } else {
-          errors++; b.classList.add("bad"); b.disabled = true;
-          fb.replaceChildren(h("div", { class: "fb ko", html: "❌ " + (q.hints && q.hints[idx] ? q.hints[idx] : "Pas tout à fait, réessaie.") }));
-        }
-      } });
-      b.innerHTML = t;
-      return b;
-    });
-    box.append(h("p", { class: "sub" }, `Question ${i + 1} / ${questions.length}`), h("p", { html: q.q }), h("div", { class: "opts" }, btns), fb, next);
+/* ============ Recherche d'entités ============ */
+function inScope() {
+  const ids = ROOMS[S.room].ents.filter(id => !S.inv.includes(id) && (!ENT[id].vis || ENT[id].vis()));
+  return [...S.inv, ...ids];
+}
+function match(r, ids, filter) {
+  if (!r) return { none: true };
+  const rt = r.split(" ");
+  let best = [], bestScore = 0;
+  for (const id of ids) {
+    const e = ENT[id]; if (filter && !filter(e)) continue;
+    let sc = 0;
+    for (const n of e.names) {
+      const nt = norm(n).split(" ");
+      if (!rt.every(t => nt.some(u => u.startsWith(t)))) continue;
+      sc = Math.max(sc, norm(n) === r ? 3 : rt.length === nt.length ? 2 : 1);
+    }
+    if (sc > bestScore) { best = [id]; bestScore = sc; } else if (sc === bestScore && sc > 0) best.push(id);
   }
-  show();
+  if (!best.length) return { none: true };
+  if (best.length > 1) return { ambig: best };
+  return { id: best[0] };
+}
+function resolve(r, filter) {
+  const m = match(r, inScope(), filter);
+  if (m.id) return m.id;
+  if (m.ambig) out(`Précise : ${m.ambig.map(i => ENT[i].names[0]).join(" ou ")} ?`, "err");
+  else out(r ? `Tu ne vois pas « ${r} » ici.` : "De quoi parles-tu ?", "err");
+  return null;
+}
+const give = id => { if (!S.inv.includes(id)) S.inv.push(id); };
+
+/* ============ Description des lieux ============ */
+function describe() {
+  const r = ROOMS[S.room];
+  out(r.name, "title");
+  out(r.desc());
+  const seen = r.ents.filter(id => !S.inv.includes(id) && (!ENT[id].vis || ENT[id].vis()) && ENT[id].label).map(id => ENT[id].label);
+  if (seen.length) out("Tu vois : " + seen.join(", ") + ".", "sys");
+  out("Sorties : " + Object.entries(r.exits).map(([d, t]) => `${d} (${ROOMS[t].name.replace(/^L[ea]s? |^L'/, "")})`).join(", ") + ".", "sys");
+  renderBar();
 }
 
-/* ---------- niveaux ---------- */
-const LEVELS = [];
-
-/* Niveau 1 — clés publique / privée */
-LEVELS.push({
-  title: "Le cadenas et la clé",
-  intro: `<div class="story">📖 <b>Alice</b> veut envoyer un message à <b>Bob</b> à travers un réseau où <b>Mallory</b> peut tout lire. Ils ne se sont jamais rencontrés : impossible de partager un secret à l'avance. Solution : la <b>cryptographie asymétrique</b>. Chacun a une <b>paire de clés</b> : une <b>publique</b> (que tout le monde peut avoir, comme un cadenas ouvert) et une <b>privée</b> (qu'il ne montre jamais).<br><br>Règle d'or : <b>ce que l'une chiffre, seule l'autre peut le déchiffrer.</b></div>`,
-  render(box, done) {
-    quiz(box, [
-      { q: "Alice veut envoyer un message <b>confidentiel</b> à Bob. Avec quelle clé le chiffre-t-elle ?",
-        opts: ["La clé <b>publique</b> de Bob", "La clé <b>privée</b> de Bob", "La clé <b>privée</b> d'Alice", "La clé <b>publique</b> d'Alice"], good: 0,
-        hints: { 1: "Alice n'a (heureusement) jamais accès à la clé privée de Bob.", 2: "Chiffrer avec sa propre clé privée, c'est une <i>signature</i> : tout le monde pourrait le lire.", 3: "Seule Alice pourrait alors le déchiffrer… pas Bob." },
-        why: "Le message est chiffré avec le cadenas ouvert de Bob. Seul Bob, qui détient la clé privée, peut l'ouvrir." },
-      { q: "Mallory intercepte le message chiffré et connaît la clé publique de Bob (elle est publique !). Peut-elle le lire ?",
-        opts: ["Non : il faut la clé <b>privée</b> de Bob", "Oui, la clé publique suffit", "Oui, en la combinant avec celle d'Alice"], good: 0,
-        hints: { 1: "Si la clé publique suffisait à déchiffrer, elle ne servirait à rien.", 2: "La clé d'Alice n'intervient pas dans ce sens." },
-        why: "La clé publique ne permet que de <i>chiffrer</i>. Retrouver la clé privée à partir d'elle est mathématiquement infaisable (factorisation, logarithme discret…)." },
-      { q: "Bob veut prouver que c'est bien <b>lui</b> qui a écrit un message : il le <b>signe</b>. Avec quelle clé ?",
-        opts: ["Sa clé <b>privée</b>", "Sa clé <b>publique</b>", "La clé publique d'Alice"], good: 0,
-        hints: { 1: "Tout le monde a sa clé publique : n'importe qui pourrait « signer » comme lui.", 2: "Ça ne prouverait rien sur l'auteur." },
-        why: "Seul Bob possède sa clé privée : seul lui peut produire une signature valide." },
-      { q: "Qui peut <b>vérifier</b> la signature de Bob ?",
-        opts: ["Tout le monde, avec la clé <b>publique</b> de Bob", "Uniquement Alice", "Uniquement Bob lui-même"], good: 0,
-        hints: { 1: "La vérification n'est pas réservée à un destinataire.", 2: "Ce serait inutile : lui sait déjà qu'il a signé." },
-        why: "La vérification est publique : c'est tout l'intérêt. Retiens : <b>chiffrer = clé publique du destinataire ; signer = clé privée de l'expéditeur.</b>" },
-      { q: "Petit piège : pourquoi TLS n'utilise-t-il pas la cryptographie asymétrique pour chiffrer <i>toute</i> la conversation ?",
-        opts: ["Elle est beaucoup plus lente que la symétrique", "Elle est moins sûre", "Elle ne marche que sur du texte"], good: 0,
-        hints: { 1: "Elle est sûre, mais coûteuse.", 2: "Ça marche sur n'importe quelles données." },
-        why: "On l'utilise juste pour <b>s'entendre sur une clé de session symétrique</b> (rapide, ex. AES), puis tout le reste passe en symétrique." }
-    ], done);
-  }
-});
-
-/* Niveau 2 — Diffie-Hellman */
-LEVELS.push({
-  title: "Se mettre d'accord en public",
-  intro: `<div class="story">📖 Comment Alice et Bob peuvent-ils fabriquer <b>le même secret</b> alors qu'Ève écoute <i>tout</i> ce qu'ils s'envoient ? C'est l'échange de clés <b>Diffie-Hellman</b> (TLS 1.3 utilise sa variante sur courbes elliptiques). Chacun garde un nombre secret, envoie une version « mélangée », puis refait un mélange avec ce qu'il reçoit : ils tombent sur le même résultat.<br>Les nombres publics : <code>p = 23</code> et <code>g = 5</code>.</div>`,
-  render(box, done) {
-    const P = 23, G = 5;
-    let a = 6, b = 15, step = 0, phase = 1, errors = 0;
-    const view = h("div");
-    box.append(view);
-    const val = (x, y) => modpow(x, y, P).toString();
-    function draw() {
-      view.replaceChildren();
-      if (phase === 1) {
-        const A = val(G, a), B = val(G, b), sA = val(B, a), sB = val(A, b);
-        const sliderA = h("input", { type: "range", min: 2, max: 21, value: a, oninput: e => { a = +e.target.value; step = 0; draw(); } });
-        const sliderB = h("input", { type: "range", min: 2, max: 21, value: b, oninput: e => { b = +e.target.value; step = 0; draw(); } });
-        const row = (label, text, ok) => h("p", { class: ok ? "" : "sub" }, ok ? h("span", { html: text }) : `${label}…`);
-        view.append(
-          h("h2", {}, "Phase 1 · Joue Alice et Bob"),
-          h("p", { class: "sub" }, "Choisis les secrets (curseurs), puis fais avancer l'échange étape par étape."),
-          h("div", { class: "grid2" },
-            h("div", { class: "actor" }, h("h3", {}, "👩 Alice"), h("div", { class: "sw" }, "secret a = ", h("b", {}, a)), sliderA,
-              row("1", `Envoie <code>A = g^a mod p = ${A}</code>`, step >= 1),
-              row("3", `Calcule <code>B^a mod p = ${B}^${a} mod 23 = ${sA}</code>`, step >= 2)),
-            h("div", { class: "actor" }, h("h3", {}, "👨 Bob"), h("div", { class: "sw" }, "secret b = ", h("b", {}, b)), sliderB,
-              row("2", `Envoie <code>B = g^b mod p = ${B}</code>`, step >= 1),
-              row("4", `Calcule <code>A^b mod p = ${A}^${b} mod 23 = ${sB}</code>`, step >= 2))),
-          h("div", { class: "actor eve", style: "margin-top:12px" }, h("h3", {}, "🕵️ Ève (écoute le réseau)"),
-            h("p", { html: step >= 1 ? `Elle voit : <code>p=23</code>, <code>g=5</code>, <code>A=${A}</code>, <code>B=${B}</code>. Mais ni <b>a</b> ni <b>b</b>.` : "Elle ne voit encore que <code>p=23</code> et <code>g=5</code>." })),
-          step >= 2 ? h("div", { class: "fb ok", html: `✅ Secret partagé : <b>${sA}</b> des deux côtés (${sA === sB ? "identique" : "?"}). Essaie d'autres curseurs : ça marche toujours, car <code>(g^a)^b = (g^b)^a</code>.` }) : null,
-          h("p", {}, step < 2
-            ? h("button", { class: "btn", onclick: () => { step++; draw(); } }, step === 0 ? "Alice et Bob s'envoient leurs valeurs" : "Chacun calcule le secret")
-            : h("button", { class: "btn", onclick: () => { phase = 2; draw(); } }, "Phase 2 : jouer Ève →")));
-      } else if (phase === 2) {
-        const sa = 13, sb = 9, A = val(G, sa);
-        let found = null;
-        const input = h("input", { type: "number", min: 1, max: 22, value: 1 });
-        const out = h("div");
-        view.append(
-          h("h2", {}, "Phase 2 · Joue Ève"),
-          h("p", { html: `Tu as intercepté <code>A = ${A}</code> (avec <code>g=5</code>, <code>p=23</code>). Trouve l'exposant secret <b>a</b> tel que <code>5^a mod 23 = ${A}</code>.` }),
-          h("div", { class: "row" }, "a =", input, h("button", { class: "btn", onclick: () => {
-            const g = +input.value;
-            if (val(G, g) === A) {
-              found = g;
-              out.replaceChildren(h("div", { class: "fb ok", html: `✅ Trouvé : a = ${g}. Avec p = 23 il n'y a que 22 possibilités : un ordinateur (ou toi, en cherchant un peu) casse ça instantanément.` }),
-                h("p", {}, h("button", { class: "btn", onclick: () => { phase = 3; draw(); } }, "Et en vrai ? →")));
-            } else {
-              errors++;
-              out.replaceChildren(h("div", { class: "fb ko", html: `❌ 5^${g} mod 23 = ${val(G, g)}, pas ${A}. Essaie une autre valeur.` }));
-            }
-          } }, "Tester")),
-          out);
-      } else {
-        view.append(h("h2", {}, "Phase 3 · Passer à l'échelle"));
-        const qbox = h("div");
-        view.append(qbox);
-        quiz(qbox, [
-          { q: "En vrai, <code>p</code> fait plus de 2000 bits (ou on utilise des courbes elliptiques). Pourquoi Ève ne peut-elle plus « tester tous les a » ?",
-            opts: ["Il y a un nombre astronomique de possibilités (retrouver <i>a</i> = problème du <b>logarithme discret</b>)", "Parce que p est secret", "Parce que le réseau est chiffré"], good: 0,
-            hints: { 1: "p est public, comme g.", 2: "Justement : le réseau n'est pas encore chiffré à ce stade, c'est ce qu'on met en place." },
-            why: "Calculer g^a mod p est facile ; retrouver a à partir du résultat est infaisable pour de grands p. C'est cette asymétrie de difficulté qui fait tout." },
-          { q: "Bonus : TLS 1.3 utilise des clés <b>éphémères</b> (ECDHE) : de nouveaux secrets à chaque connexion. Quel avantage ?",
-            opts: ["<b>Confidentialité persistante</b> : voler la clé du serveur plus tard ne permet pas de déchiffrer les anciennes conversations enregistrées", "La connexion est plus rapide", "On n'a plus besoin de certificat"], good: 0,
-            hints: { 1: "Ce n'est pas le but principal.", 2: "Faux : on verra au niveau 5 que sans certificat, un attaquant peut s'interposer." },
-            why: "Les secrets a et b sont jetés après la session : il n'y a plus rien à voler. C'est le <i>forward secrecy</i>." }
-        ], e => done(errors + e));
-      }
-    }
-    draw();
-  }
-});
-
-/* Niveau 3 — certificats */
-LEVELS.push({
-  title: "Faire confiance (ou pas)",
-  intro: `<div class="story">📖 Diffie-Hellman donne un secret, mais <b>avec qui</b> ? Quand tu vas sur <code>banque.fr</code>, le serveur envoie un <b>certificat</b> : sa clé publique + son identité, <b>signés par une autorité de certification (CA)</b> que ton navigateur connaît déjà. Ton navigateur vérifie 4 choses : <b>le nom</b> correspond au site, <b>la date</b> est valide, la <b>signature</b> remonte (via des intermédiaires) jusqu'à une <b>CA racine de confiance</b>, et le certificat n'est pas révoqué.<br>Tu es le navigateur. Date du jeu : <b>5 octobre 2026</b>. Pour chaque certificat : <b>accepter</b> ou <b>rejeter</b> ?</div>`,
-  render(box, done) {
-    const CASES = [
-      { site: "banque.fr", cn: "banque.fr", issuer: "R11 (intermédiaire) ← ISRG Root X1 (racine de confiance)", from: "1 sept. 2026", to: "1 déc. 2026", ok: true,
-        why: "Nom correct, date valide, chaîne complète jusqu'à une racine présente dans ton navigateur : on fait confiance." },
-      { site: "banque.fr", cn: "banque-fr.connexion-securisee.xyz", issuer: "R11 (intermédiaire) ← ISRG Root X1 (racine de confiance)", from: "1 sept. 2026", to: "1 déc. 2026", ok: false,
-        why: "Le certificat est valide… mais pour <b>un autre domaine</b>. Un attaquant peut obtenir un vrai certificat pour son propre site : le <b>nom</b> doit correspondre à celui demandé." },
-      { site: "boutique.fr", cn: "boutique.fr", issuer: "R11 (intermédiaire) ← ISRG Root X1 (racine de confiance)", from: "1 janv. 2025", to: "1 avr. 2025", ok: false,
-        why: "Certificat <b>expiré</b>. Les dates limitent la durée d'exposition d'une clé volée." },
-      { site: "intranet.exemple.fr", cn: "intranet.exemple.fr", issuer: "intranet.exemple.fr (auto-signé)", from: "1 janv. 2026", to: "1 janv. 2036", ok: false,
-        why: "Un certificat <b>auto-signé</b> ne prouve rien : n'importe qui peut en fabriquer un. Aucune CA de confiance n'a vérifié l'identité." },
-      { site: "mairie.fr", cn: "mairie.fr", issuer: "Sub-CA Régionale ← Autorité Nationale (racine de confiance)", from: "10 août 2026", to: "10 nov. 2026", ok: true,
-        why: "La chaîne a un intermédiaire de plus, mais elle remonte bien à une racine de confiance : <b>chaque maillon signe le suivant</b>." },
-      { site: "promo.fr", cn: "promo.fr", issuer: "MegaCertif Discount Inc. (inconnue de ton navigateur)", from: "1 sept. 2026", to: "1 sept. 2027", ok: false,
-        why: "Le certificat est cohérent, mais l'émetteur n'est <b>pas dans les racines de confiance</b>. Ton navigateur ne peut pas vérifier la chaîne." }
-    ];
-    const order = shuffle(CASES);
-    let i = 0, errors = 0;
-    function show() {
-      box.replaceChildren();
-      const c = order[i];
-      const fb = h("div");
-      const next = h("button", { class: "btn", hidden: true, onclick: () => { i++; i < order.length ? show() : done(errors); } }, i + 1 < order.length ? "Certificat suivant →" : "Terminer");
-      const answer = verdict => {
-        const good = verdict === c.ok;
-        if (!good) errors++;
-        fb.replaceChildren(h("div", { class: "fb " + (good ? "ok" : "ko"), html: (good ? "✅ " : "❌ ") + (c.ok ? "<b>À accepter.</b> " : "<b>À rejeter.</b> ") + c.why }));
-        btns.forEach(b => b.disabled = true);
-        next.hidden = false;
-      };
-      const btns = [h("button", { class: "btn", onclick: () => answer(true) }, "✅ Faire confiance"), h("button", { class: "btn ghost", onclick: () => answer(false) }, "⛔ Rejeter")];
-      box.append(h("p", { class: "sub" }, `Certificat ${i + 1} / ${order.length}`),
-        h("p", { html: `Tu navigues vers <code>${c.site}</code>. Le serveur présente :` }),
-        h("div", { class: "actor cert" }, h("dl", { class: "kv" },
-          h("dt", {}, "Délivré à"), h("dd", {}, c.cn), h("dt", {}, "Émetteur (chaîne)"), h("dd", {}, c.issuer),
-          h("dt", {}, "Valide du"), h("dd", {}, c.from), h("dt", {}, "au"), h("dd", {}, c.to))),
-        h("div", { class: "row", style: "margin-top:12px" }, btns), fb, next);
-    }
-    show();
-  }
-});
-
-/* Niveau 4 — ordre du handshake */
-LEVELS.push({
-  title: "La poignée de main",
-  intro: `<div class="story">📖 Place les messages du <b>handshake TLS 1.3</b> (version simplifiée) dans le bon ordre, du premier au dernier. Utilise ▲ ▼ puis valide.</div>`,
-  render(box, done) {
-    const STEPS = [
-      { t: "ClientHello", d: "Client → Serveur : versions TLS, suites de chiffrement acceptées, et sa <b>moitié d'échange de clés</b> (Diffie-Hellman éphémère)." },
-      { t: "ServerHello", d: "Serveur → Client : suite choisie + <b>sa moitié</b> de l'échange de clés. À partir de là, les deux calculent le secret et chiffrent la suite." },
-      { t: "Certificate + CertificateVerify", d: "Serveur → Client : son certificat, et une <b>signature</b> prouvant qu'il possède la clé privée correspondante (anti-usurpation)." },
-      { t: "Finished (serveur)", d: "Serveur → Client : « voici un condensé de tout ce qu'on s'est dit » : détecte toute modification du handshake." },
-      { t: "Finished (client)", d: "Client → Serveur : même vérification de son côté, après avoir validé le certificat." },
-      { t: "Données applicatives chiffrées", d: "Le trafic HTTP circule, chiffré en <b>symétrique</b> avec les clés de session dérivées." }
-    ];
-    let list = shuffle(STEPS.map((s, i) => i));
-    while (list.every((v, i) => v === i)) list = shuffle(list);
-    let errors = 0;
-    const ol = h("ol", { class: "order" });
-    const fb = h("div");
-    function draw(marks) {
-      ol.replaceChildren(...list.map((idx, pos) => h("li", { class: marks ? (idx === pos ? "good" : "bad") : "" },
-        h("span", { class: "mono" }, pos + 1),
-        h("span", { class: "lbl" }, STEPS[idx].t, marks && idx === pos ? h("small", { html: STEPS[idx].d }) : null),
-        h("button", { "aria-label": "Monter", onclick: () => move(pos, -1) }, "▲"),
-        h("button", { "aria-label": "Descendre", onclick: () => move(pos, 1) }, "▼"))));
-    }
-    function move(pos, d) {
-      const n = pos + d; if (n < 0 || n >= list.length) return;
-      [list[pos], list[n]] = [list[n], list[pos]]; fb.replaceChildren(); draw();
-    }
-    const check = h("button", { class: "btn", onclick: () => {
-      const right = list.filter((v, i) => v === i).length;
-      draw(true);
-      if (right === STEPS.length) {
-        fb.replaceChildren(h("div", { class: "fb ok", html: "✅ Parfait ! Remarque : dès le <b>ServerHello</b>, le secret partagé existe — c'est pour ça que le certificat arrive déjà chiffré en TLS 1.3." }),
-          h("button", { class: "btn", onclick: () => done(errors) }, "Terminer"));
-        check.disabled = true;
-      } else {
-        errors++;
-        fb.replaceChildren(h("div", { class: "fb ko", html: `❌ ${right} / ${STEPS.length} à la bonne place. Indice : on s'accorde d'abord sur le secret (Hello), puis le serveur prouve qui il est, puis chacun confirme que rien n'a été modifié (Finished).` }));
-      }
-    } }, "Valider l'ordre");
-    box.append(ol, check, fb);
-    draw();
-  }
-});
-
-/* Niveau 5 — boss : l'homme du milieu */
-LEVELS.push({
-  title: "Boss : l'homme du milieu",
-  intro: `<div class="story">📖 <b>Mallory</b> contrôle le Wi-Fi du café. Quand Alice se connecte à <code>banque.fr</code>, elle s'interpose : elle fait <b>un Diffie-Hellman avec Alice</b> et <b>un autre avec la banque</b>, et relaie (en lisant tout) les messages. Le chiffrement seul ne l'arrête pas… Que fait vraiment la vérification du certificat ? Lance la simulation <b>dans les deux modes</b>.</div>`,
-  render(box, done) {
-    const seen = { on: false, off: false };
-    let errors = 0;
-    const log = h("div", { class: "log" }, h("p", { class: "sub" }, "Lance une simulation."));
-    const verdict = h("div");
-    const qbox = h("div");
-    const sim = on => {
-      const lines = [
-        "👩 Alice → (Wi-Fi de Mallory) : ClientHello pour <code>banque.fr</code>",
-        "🦹 Mallory intercepte, ouvre sa propre connexion vers la vraie banque, et répond à Alice avec <b>sa</b> moitié de Diffie-Hellman.",
-        "🦹 Mallory envoie à Alice un certificat. Elle n'a pas la clé privée de la banque, donc c'est <b>le sien</b>, pour <code>banque.fr</code>, signé par… elle-même."
-      ];
-      if (on) {
-        lines.push("👩 Alice (navigateur) vérifie la chaîne : la signature ne remonte à <b>aucune CA de confiance</b>.",
-          "🛑 <b>Connexion refusée</b> : « Votre connexion n'est pas privée ». <span class='tag ok'>Attaque bloquée</span>");
-      } else {
-        lines.push("👩 Alice (navigateur sans vérification) accepte n'importe quel certificat.",
-          "🔓 Alice chiffre vers Mallory, qui déchiffre, lit le mot de passe, rechiffre vers la banque. <span class='tag ko'>Tout est compromis, et le cadenas s'affiche quand même.</span>");
-      }
-      log.replaceChildren(...lines.map(l => h("p", { html: l })));
-      seen[on ? "on" : "off"] = true;
-      verdict.replaceChildren();
-      if (seen.on && seen.off && !qbox.childNodes.length) {
-        qbox.append(h("hr"), h("p", { html: "<b>Dernière question.</b>" }));
-        const qq = h("div"); qbox.append(qq);
-        quiz(qq, [{ q: "Si le chiffrement est déjà là (Diffie-Hellman), pourquoi a-t-on <i>aussi</i> besoin des certificats ?",
-          opts: ["Parce que Diffie-Hellman donne un secret, mais ne dit pas <b>avec qui</b> on le partage : il faut <b>authentifier</b> le serveur",
-                 "Parce que Diffie-Hellman est trop lent", "Parce que Diffie-Hellman n'est pas chiffré"], good: 0,
-          hints: { 1: "Ce n'est pas la raison.", 2: "Le problème n'est pas le chiffrement, mais l'identité de l'interlocuteur." },
-          why: "<b>Chiffrement sans authentification = on parle en secret… peut-être avec l'attaquant.</b> TLS combine : échange de clés (confidentialité) + certificat/signature (authenticité) + condensés Finished (intégrité)." }],
-          e => done(errors + e));
-      }
-    };
-    box.append(
-      h("div", { class: "row" },
-        h("button", { class: "btn", onclick: () => sim(false) }, "▶ Navigateur SANS vérification du certificat"),
-        h("button", { class: "btn ghost", onclick: () => sim(true) }, "▶ Navigateur AVEC vérification")),
-      h("p", {}), log, verdict, qbox);
-  }
-});
-
-/* ---------- application ---------- */
-const FICHE = `<h2>🏆 Bravo, tu as tout compris du cadenas</h2>
-<ul class="fiche">
-<li><b>Asymétrique</b> : on chiffre avec la clé <i>publique</i> du destinataire, on signe avec sa clé <i>privée</i>.</li>
-<li><b>Diffie-Hellman éphémère</b> : un secret partagé fabriqué en public, jeté après la session (<i>forward secrecy</i>).</li>
-<li><b>Certificat + CA</b> : lie une clé publique à un nom ; le navigateur contrôle nom, dates, chaîne de confiance, révocation.</li>
-<li><b>Handshake</b> : Hello (clés) → Certificate + Verify (identité) → Finished (intégrité) → données en <b>symétrique</b>.</li>
-<li><b>Sans authentification, le chiffrement ne protège pas de l'homme du milieu.</b></li>
-</ul>
-<p class="sub">Prochains concepts à venir : voir <code>ROADMAP.md</code>.</p>`;
-
-let state = store.load() || { unlocked: 0, stars: [] };
-let cur = Math.min(state.unlocked, LEVELS.length - 1);
-
-function starsFor(errors) { return errors === 0 ? 3 : errors <= 3 ? 2 : 1; }
-
-function renderNav() {
-  const nav = document.getElementById("nav");
-  nav.replaceChildren(...LEVELS.map((l, i) => h("button", { class: i === cur ? "cur" : "", disabled: i > state.unlocked, onclick: () => { cur = i; render(); } },
-    `${i + 1}. ${l.title}`, h("span", { class: "stars" }, state.stars[i] ? "★".repeat(state.stars[i]) + "☆".repeat(3 - state.stars[i]) : (i > state.unlocked ? "🔒" : "à jouer")))));
+/* ============ Objectif en cours (pour les indices) ============ */
+function objective() {
+  const F = f();
+  if (!F.quest) return "quest";
+  if (!F.sealed) return "seal";
+  if (!F.signed) return "sign";
+  if (!F.key) return S.a == null ? "key0" : !F.sentA ? "key1" : "key2";
+  if (!F.certOK) return "cert";
+  if (!F.malloryDone) return "mallory";
+  if (!F.protocol) return "protocol";
+  if (!F.end) return "deliver";
+  return "end";
+}
+const HINTS = {
+  quest: () => ["Commence par parler à la doyenne de la Guilde.", "`parler ada`"],
+  seal: () => ["La lettre d'Alice n'est pas protégée. L'Atelier de Dame Rivest (nord de la Place) tient les cadenas publics.", "À l'Atelier : `prendre cadenas banque` puis `utiliser lettre sur cadenas banque`. (De la Guilde : `aller est`, puis `aller nord`.)"],
+  sign: () => ["La banque voudra savoir qui livre. Que peut-on faire d'une clé privée ?", "À l'Atelier : `utiliser sceau sur bordereau`."],
+  key0: () => ["Chiffrer coûte cher : il faut une clé légère commune. Les peintres, au nord de l'Atelier, savent en fabriquer une en public.", "À la Tour : `parler peintres`, puis choisis un secret, par exemple `secret 6`."],
+  key1: () => ["Calcule ta valeur publique avec le boulier, puis donne-la à Hellman.", `\`calc ${G}^${S.a} mod ${P}\` puis \`dire ‹résultat›\`.`],
+  key2: () => ["Hellman t'a donné sa valeur publique B. Combine-la avec TON secret, comme lui combinera la tienne avec le sien.", `\`calc ${B_PUB}^${S.a} mod ${P}\` puis \`dire ‹résultat›\` devant le coffre.`],
+  cert: () => ["Le Bureau des Sceaux (est de la Place) t'apprendra à vérifier une identité. Trois contrôles : nom, dates, chaîne.", "`examiner rouge`, `examiner vert`, etc. Puis `accepter ‹couleur›` pour celui qui passe les trois contrôles."],
+  mallory: () => ["Tu sais chiffrer, signer, partager une clé, vérifier un certificat. Le café Wi-Fi, au sud de la Place, est le point de passage de Mallory.", "`parler silhouette`, `demander certificat`, puis `accuser mallory` si le certificat est suspect."],
+  protocol: () => ["Le café est sûr. La banque (est du Bureau des Sceaux) a un rituel d'accueil : les cartes sont sur la table.", "`examiner table`, puis `poser hello client` et les suivantes dans l'ordre d'une vraie conversation TLS."],
+  deliver: () => ["Il ne reste plus qu'à remettre le courrier.", "`donner lettre a vault` puis `donner bordereau a vault`."],
+  end: () => ["La mission est terminée ! Relis ton carnet.", "`carnet`"],
+};
+function hint() {
+  const k = objective();
+  if (S.hobj !== k) { S.hobj = k; S.hl = 0; }
+  const h = HINTS[k]();
+  out("Indice : " + h[Math.min(S.hl, 1)], "sys");
+  if (S.hl === 0 && h[1]) out("Tape `indice` encore pour une indication plus précise.", "sys");
+  S.hl++;
 }
 
-function render() {
-  renderNav();
-  const stage = document.getElementById("stage");
-  const lvl = LEVELS[cur];
-  const body = h("div");
-  const card = h("div", { class: "card" }, h("h2", {}, `Niveau ${cur + 1} · ${lvl.title}`), h("div", { html: lvl.intro }), body);
-  stage.replaceChildren(card);
-  lvl.render(body, errors => {
-    const s = starsFor(errors);
-    state.stars[cur] = Math.max(state.stars[cur] || 0, s);
-    state.unlocked = Math.max(state.unlocked, Math.min(cur + 1, LEVELS.length));
-    store.save(state);
-    renderNav();
-    const last = cur === LEVELS.length - 1;
-    body.replaceChildren(h("div", { class: "fb ok", html: `🎉 Niveau terminé : <b>${"★".repeat(s)}${"☆".repeat(3 - s)}</b> (${errors} erreur${errors > 1 ? "s" : ""})` }),
-      last ? h("div", { class: "card", html: FICHE }) : h("button", { class: "btn", onclick: () => { cur++; render(); } }, "Niveau suivant →"),
-      h("p", {}, h("button", { class: "btn ghost", onclick: render }, "Rejouer ce niveau")));
-  });
+/* ============ Dialogues ============ */
+function talk(id) {
+  const F = f();
+  switch (id) {
+    case "ada":
+      if (!F.quest) {
+        F.quest = true; ["lettre", "bordereau", "sceau", "cadcour"].forEach(give);
+        say("Maître Ada", "Te voilà. Écoute bien. Alice, une commerçante, doit envoyer cette lettre à la banque-du-port : un ordre de virement. Mais la route passe par le café Wi-Fi, et depuis une semaine quelqu'un lit nos lettres, parfois les modifie. Ce quelqu'un s'appelle Mallory.");
+        say("Maître Ada", "Voici ton équipement : la lettre d'Alice, un bordereau de livraison, ton sceau personnel et ton cadenas ouvert. Avant de partir, trois leçons : l'Atelier de Dame Rivest (nord de la Place), la Tour des Peintres (au-dessus), le Bureau des Sceaux (est de la Place). Puis le café, puis la banque.");
+        out("Tape `inventaire` pour voir ce que tu portes, `aide` pour la liste des commandes, `indice` si tu bloques.", "sys");
+      } else if (F.end) say("Maître Ada", "Alice a reçu son virement, Mallory est en cavale, et tu sais maintenant ce que fait vraiment le petit cadenas de ton navigateur. Je suis fière de toi.");
+      else {
+        const k = objective();
+        const m = { seal: "Commence par l'Atelier : cette lettre est lisible par tout le monde.", sign: "Il te reste à signer ton bordereau chez Dame Rivest.", key0: "Les peintres de la Tour t'attendent.", key1: "Les peintres de la Tour t'attendent.", key2: "Les peintres de la Tour t'attendent.", cert: "Passe au Bureau des Sceaux : il faut savoir reconnaître un vrai certificat.", mallory: "Tu es prêt pour le café Wi-Fi. Garde les yeux ouverts et ne donne ta confiance à personne sans preuve.", protocol: "Mallory est neutralisée. La banque a rouvert : à toi de jouer le protocole.", deliver: "Remets ta lettre et ton bordereau à Madame Vault." }[k];
+        say("Maître Ada", m || "Alors, cette mission ?");
+      }
+      break;
+
+    case "rivest":
+      if (!F.sealed) say("Dame Rivest", "Une lettre confidentielle pour la banque ? Facile : on n'a pas besoin de se rencontrer avant. Chacun possède une paire de clés. Le cadenas OUVERT, c'est la clé publique : tout le monde peut en avoir. La clé qui l'ouvre, la privée, ne quitte jamais son propriétaire. Pour écrire à la banque, ferme ta lettre avec LE CADENAS DE LA BANQUE. Il est dans l'annuaire.");
+      else if (!F.signed) say("Dame Rivest", "Bien. Maintenant, la banque doit savoir QUI livre. Un cadenas ouvert est public : n'importe qui en fabrique un. Une signature, c'est l'inverse : tu appliques ta clé PRIVÉE, et tout le monde peut vérifier avec ta clé publique. Signe ton bordereau avec ton sceau.");
+      else {
+        say("Dame Rivest", "Parfait. Chiffrer, signer : tu as les deux. Un dernier point : mes cadenas sont lourds. Pour une longue conversation, on utilise une petite clé légère, la MÊME des deux côtés, qu'on appelle clé symétrique. Le problème : comment la partager sans que quelqu'un la voie passer ?");
+        say("Dame Rivest", "Monte voir les peintres, au nord. Ils ont une réponse étonnante.");
+        note("sym");
+      }
+      break;
+
+    case "peintres": {
+      if (F.key) { say("Diffie", "Le coffre est ouvert, tu as ta clé. Et une chose importante : on jette nos secrets a et b dès la fin de la session. Si un jour quelqu'un vole nos coffres, il ne retrouvera rien des anciennes conversations."); note("pfs"); break; }
+      if (S.a == null) {
+        say("Hellman", `Bienvenue. Voici le problème : tu veux t'entendre sur un secret avec la banque, mais Ève, ce corbeau, répète tout ce qui se dit. Le tableau donne deux nombres publics : p = ${P} et g = ${G}.`);
+        say("Diffie", `Choisis un nombre secret entre 2 et 21 et garde-le pour toi : \`secret ‹2-21›\`, par exemple \`secret 6\`. Ensuite, calcule ta valeur publique : g puissance ton secret, modulo p, au boulier. Pour 6 : \`calc ${G}^6 mod ${P}\`.`);
+      } else if (!F.sentA) {
+        say("Hellman", `Ton secret est ${S.a}. Calcule ta valeur publique avec \`calc ${G}^${S.a} mod ${P}\`, puis annonce-la : \`dire ‹résultat›\`. Cette valeur, tout le monde peut l'entendre, même Ève.`);
+      } else {
+        say("Hellman", `De mon côté, j'ai fait pareil avec mon secret (que je garde) : ma valeur publique est ${B_PUB}. À toi de la combiner avec TON secret : ${B_PUB} puissance ${S.a}, modulo ${P}. Moi, je combine la tienne avec le mien : on tombera sur le même nombre, par magie des puissances.`);
+        say("Diffie", "Quand tu l'as, dis-le au coffre : `dire ‹nombre›`. S'il s'ouvre, tu partages un secret avec nous. Ève, elle, n'a que nos deux valeurs publiques.");
+      }
+      break;
+    }
+
+    case "corbeau": {
+      const A = S.a == null ? null : modpow(G, S.a, P);
+      if (A == null) say("Ève", "Croa ! J'écoute. Pour l'instant, je n'ai entendu que p = 23 et g = 5. Rien de secret.");
+      else say("Ève", `Croa ! J'ai entendu : p = ${P}, g = ${G}, A = ${A}${F.sentA ? `, B = ${B_PUB}` : ""}. Avec p = 23 je trouverais ton secret en essayant les 22 exposants possibles : fais-le toi-même au boulier si tu veux. Mais avec un p de 2 000 bits, il n'y a pas assez d'années dans l'univers. Je ne peux pas deviner le secret commun. Croa.`);
+      break;
+    }
+
+    case "capitaine":
+      if (F.certOK) say("Capitaine Chaîne", "Le courrier rouge est authentique : sa chaîne Sous-Chancellerie → Chancellerie Royale remonte jusqu'à une racine connue. Chaque maillon signe le suivant. C'est ça, une chaîne de confiance. Et si un maillon est révoqué, tout ce qui en dépend l'est aussi.");
+      else say("Capitaine Chaîne", "Quatre courriers disent venir de la banque, un seul dit vrai. Contrôle trois choses sur chaque certificat. UN : le nom est celui du destinataire de la lettre, banque-du-port, à la lettre près. DEUX : la date du jour (5 octobre 2026) est entre les deux dates de validité. TROIS : la chaîne de signatures aboutit à une autorité de mon registre. Examine-les (`examiner rouge`...) et accepte le bon : `accepter ‹couleur›`.");
+      break;
+
+    case "mallory":
+      if (F.malloryDone) { say("Mallory", "Tu n'entendras plus parler de moi... jusqu'à la prochaine faille."); break; }
+      if (!F.malloryOffer) {
+        F.malloryOffer = true;
+        say("Silhouette", "Salut courrier ! Je suis le courrier officiel de la banque. Inutile de te taper la route : donne-moi ta lettre. Ah, et un détail : la banque a changé de clé, l'ancien cadenas de l'annuaire est périmé. Voici le nouveau, scelle ta lettre avec celui-là, c'est le bon.");
+        out("La silhouette te tend un cadenas ouvert. Réfléchis : que sais-tu de cette personne ? Tu peux lui demander des preuves : `demander certificat`.", "sys");
+      } else if (!F.certShown) say("Silhouette", "Alors, tu te décides ? Mon cadenas, c'est celui de la banque, fais-moi confiance.");
+      else say("Silhouette", "Mon certificat est en règle : nom, dates, tout y est. Allez, scelle.");
+      break;
+
+    case "vault":
+      if (F.end) say("Madame Vault", "Un plaisir de traiter avec un courrier qui connaît les règles.");
+      else if (!F.protocol) say("Madame Vault", "Bonjour. Ici, on ne sort rien d'une sacoche avant d'avoir établi une connexion sécurisée dans les règles de l'art. Les six étapes sont sur la table, dans le désordre : pose-les dans l'ordre. Les cartes se jouent avec `poser ‹carte›`.");
+      else say("Madame Vault", "La connexion est établie. Remets-moi ta lettre et ton bordereau.");
+      break;
+
+    default: out("Il ne répond pas.", "sys");
+  }
 }
 
-const resetBtn = document.getElementById("reset");
-let armed = false;
-resetBtn.addEventListener("click", () => {
-  if (!armed) { armed = true; resetBtn.textContent = "Cliquer encore pour confirmer"; setTimeout(() => { armed = false; resetBtn.textContent = "Réinitialiser la progression"; }, 4000); return; }
-  armed = false; resetBtn.textContent = "Réinitialiser la progression";
-  store.clear(); state = { unlocked: 0, stars: [] }; cur = 0; render();
+/* ============ Commandes ============ */
+const VERBS = {
+  look: ["regarder", "voir", "l", "observer", "r"], examine: ["examiner", "ex", "x", "inspecter", "lire", "etudier", "verifier"],
+  go: ["aller", "va", "go", "marcher", "entrer", "monter", "descendre"], take: ["prendre", "ramasser", "attraper", "saisir"],
+  use: ["utiliser", "appliquer", "sceller", "signer", "fermer", "combiner"], talk: ["parler", "discuter", "saluer"],
+  give: ["donner", "remettre", "tendre", "offrir", "livrer"], say: ["dire", "repondre", "annoncer", "enonce", "enoncer"],
+  inv: ["inventaire", "inv", "i"], notes: ["carnet", "notes", "codex"], hint: ["indice", "aide moi"], help: ["aide", "help", "commandes", "?"],
+  secret: ["secret", "choisir"], put: ["poser", "placer", "mettre"], ask: ["demander", "reclamer", "exiger"],
+  accept: ["accepter", "valider", "approuver"], refuse: ["refuser", "rejeter"], accuse: ["accuser", "denoncer", "demasquer", "arreter"],
+  restart: ["recommencer", "reset"],
+};
+const VERB_OF = {};
+for (const [k, arr] of Object.entries(VERBS)) arr.forEach(v => VERB_OF[v] = k);
+const DIRS = { n: "nord", nord: "nord", s: "sud", sud: "sud", e: "est", est: "est", o: "ouest", ouest: "ouest", w: "ouest" };
+
+function splitArgs(rest) {
+  const i = rest.findIndex(t => SEP.has(t));
+  if (i > 0) return [rest.slice(0, i).join(" "), rest.slice(i + 1).join(" ")];
+  return [rest.filter(t => !SEP.has(t)).join(" "), ""];
+}
+
+function move(target) {
+  const r = ROOMS[S.room];
+  let dest = null;
+  if (DIRS[target]) dest = r.exits[DIRS[target]];
+  else for (const [, id] of Object.entries(r.exits)) if (ROOMS[id].alias.some(a => norm(a) === target || norm(a).startsWith(target) && target.length >= 3)) dest = id;
+  if (!dest) { out(target ? "Tu ne peux pas aller par là." : "Où ça ? (nord, sud, est, ouest)", "err"); return; }
+  const F = f();
+  if (dest === "cafe" && !F.malloryDone) {
+    const missing = [];
+    if (!F.sealed) missing.push("ta lettre n'est pas scellée");
+    if (!F.signed) missing.push("ton bordereau n'est pas signé");
+    if (!F.key) missing.push("tu n'as pas de clé de session");
+    if (!F.certOK) missing.push("tu ne sais pas encore vérifier un certificat");
+    if (missing.length) {
+      say("Maître Ada", `(elle te rattrape par la manche) Pas dans cet état ! ${missing.join(", ")}. Le café est le territoire de Mallory : on n'y entre pas à découvert.`);
+      return;
+    }
+  }
+  if (dest === "banque" && !F.malloryDone) {
+    out("Un vigile barre la porte : « La banque est fermée. Une personne malveillante rôde sur la route, on ne reçoit plus personne tant qu'elle n'est pas neutralisée. » Elle traîne sans doute au café Wi-Fi.", "err");
+    return;
+  }
+  S.room = dest; describe();
+}
+
+function use(aTxt, bTxt) {
+  const a = resolve(aTxt); if (!a) return;
+  if (!bTxt) { out("Utiliser sur quoi ? (`utiliser ‹objet› sur ‹objet›`)", "err"); return; }
+  const b = resolve(bTxt); if (!b) return;
+  const key = [a, b].sort().join("+");
+  const F = f();
+  if (a === b) { out("Ça ne donne rien.", "sys"); return; }
+  switch (key) {
+    case "cadbanque+lettre":
+      if (!S.inv.includes("cadbanque")) { give("cadbanque"); out("(Tu prends d'abord le cadenas.)", "sys"); }
+      if (F.sealed) { out("La lettre est déjà scellée avec ce cadenas.", "sys"); return; }
+      F.sealed = true;
+      out("Clac. Tu fermes la lettre avec le cadenas ouvert de la banque. Maintenant, seule la banque, avec sa clé privée, pourra l'ouvrir : pas toi, pas Mallory, personne d'autre.", "ok");
+      note("asym"); break;
+    case "cadcour+lettre":
+      out("Tu fermes la lettre avec ton propre cadenas… et tu réalises que seul TOI pourrais l'ouvrir. La banque n'y a pas accès. On chiffre avec la clé publique du DESTINATAIRE. Tu rouvres la lettre.", "err"); break;
+    case "bordereau+sceau":
+      if (F.signed) { out("Le bordereau est déjà signé.", "sys"); return; }
+      F.signed = true;
+      out("Tu presses ton sceau sur le bordereau. Une empreinte unique apparaît : seule ta clé privée peut la produire, mais n'importe qui peut la vérifier avec ton empreinte publique, affichée à l'annuaire de la Guilde.", "ok");
+      note("sig"); break;
+    case "bordereau+cadbanque": case "bordereau+cadcour":
+      out("Un cadenas ouvert est public : n'importe qui peut en fabriquer un. Il ne prouve pas qui tu es. Pour signer, il faut ta clé PRIVÉE, c'est-à-dire ton sceau.", "err"); break;
+    case "lettre+sceau":
+      out("Le sceau, c'est pour signer, et signer ne cache rien : tout le monde pourrait toujours lire la lettre. Pour la protéger, il faut chiffrer avec le cadenas du destinataire.", "err"); break;
+    case "cadmal+lettre":
+      if (!F.malloryOffer || F.malloryDone) { out("Rien ne se passe.", "sys"); return; }
+      failMitm("Tu fermes la lettre avec le cadenas de la silhouette."); break;
+    default: out("Ces deux objets n'ont rien à faire ensemble.", "sys");
+  }
+}
+
+function failMitm(intro) {
+  const F = f();
+  F.sealed = false; F.malloryOffer = true; F.mitm = (F.mitm || 0) + 1;
+  out(intro, "err");
+  say("Mallory", "Merci ! (elle rabat sa capuche en arrière) Ce cadenas, c'est moi qui l'ai fabriqué, et c'est MA clé privée qui l'ouvre. Je vais lire ta lettre, la refermer avec le vrai cadenas de la banque, et la lui faire parvenir. Ni Alice ni la banque ne verront jamais rien.");
+  out("C'est l'attaque de l'homme du milieu : la lettre était bien chiffrée, mais pour la mauvaise personne. Ada te rend une nouvelle lettre. Retourne à l'Atelier la sceller avec le VRAI cadenas, puis reviens avec de meilleures questions : exige un certificat.", "err");
+  note("mitm");
+}
+
+function exec(raw) {
+  const clean = raw.trim(); if (!clean) return;
+  out("> " + clean, "you");
+  const F = f();
+
+  // calc : avant la normalisation pour garder les opérateurs
+  const mc = clean.toLowerCase().match(/^(?:calc|calculer|boulier)\s+(.+)$/);
+  if (mc) { calc(mc[1]); save(); return; }
+
+  const toks = norm(clean).split(" ").filter(Boolean);
+  let verb = toks[0], rest = toks.slice(1);
+  if (toks.length >= 2 && VERB_OF[toks[0] + " " + toks[1]]) { verb = toks[0] + " " + toks[1]; rest = toks.slice(2); }
+  if (DIRS[verb] && !rest.length) { move(verb); save(); return; }
+  rest = rest.filter(t => !ART.has(t));
+  const k = VERB_OF[verb];
+  if (!k) { out("Je ne comprends pas. Tape `aide` pour la liste des commandes.", "err"); return; }
+  const target = rest.filter(t => !SEP.has(t) || rest.indexOf(t) > 0).join(" ").replace(/^(a|au|aux|vers|sur) /, "");
+  const room = S.room;
+
+  switch (k) {
+    case "look": if (!rest.length) describe(); else { const id = resolve(target); if (id) out(ENT[id].desc()); } break;
+    case "examine": {
+      if (/^verifier/.test(verb) && !rest.length) { out("Vérifier quoi ? (`examiner ‹objet›`)", "err"); break; }
+      const id = resolve(target); if (!id) break;
+      if (id === "certmal") F.certShown = true;
+      out(ENT[id].desc());
+      break;
+    }
+    case "go": move(target); break;
+    case "take": {
+      const id = resolve(target); if (!id) break;
+      if (S.inv.includes(id)) out("Tu l'as déjà.", "sys");
+      else if (ENT[id].take) { give(id); out(`Tu prends ${ENT[id].label}.`, "ok"); }
+      else out("Tu ne peux pas emporter ça.", "sys");
+      break;
+    }
+    case "use": { const [a, b] = splitArgs(rest); use(a, b); break; }
+    case "talk": { const id = resolve(target, e => e.npc); if (id) talk(id); break; }
+    case "say": sayCmd(rest.join(" ")); break;
+    case "give": giveCmd(rest); break;
+    case "inv":
+      out(S.inv.length ? "Tu portes : " + S.inv.map(id => ENT[id].label).join(", ") + "." : "Tu ne portes rien.", "sys"); break;
+    case "notes":
+      if (!S.notes.length) { out("Ton carnet est vide : il se remplit à mesure que tu comprends.", "sys"); break; }
+      out(`Carnet (${S.notes.length}/${Object.keys(NOTES).length})`, "title");
+      S.notes.forEach(id => out(`**${NOTES[id][0]}**\n${NOTES[id][1]}`, "note")); break;
+    case "hint": hint(); break;
+    case "help": help(); break;
+    case "secret": secretCmd(rest); break;
+    case "put": putCmd(target); break;
+    case "ask": askCmd(rest); break;
+    case "accept": acceptCmd(target); break;
+    case "refuse": refuseCmd(target); break;
+    case "accuse": accuseCmd(target); break;
+    case "restart":
+      if (rest[0] === "oui") { wipe(); S = fresh(); logEl.replaceChildren(); start(); }
+      else out("Cela efface toute ta progression. Pour confirmer : `recommencer oui`", "err");
+      break;
+  }
+  save(); if (room !== S.room) return; renderBar();
+}
+
+function help() {
+  out("Commandes utiles", "title");
+  out("`regarder` · `examiner ‹objet›` · `aller ‹direction›` (ou n, s, e, o) · `prendre ‹objet›`\n`utiliser ‹objet› sur ‹objet›` · `parler ‹personne›` · `donner ‹objet› a ‹personne›`\n`demander ‹chose›` · `dire ‹mot ou nombre›` · `poser ‹carte›` · `accepter` / `refuser` / `accuser`\n`calc ‹a^b mod p›` (boulier de poche) · `secret ‹nombre›`\n`inventaire` · `carnet` · `indice` · `recommencer`", "sys");
+  out("Astuce : les commandes en orange sont cliquables.", "sys");
+}
+
+function calc(expr) {
+  const e = expr.replace(/,/g, ".").trim();
+  let m;
+  if ((m = e.match(/^(\d+)\s*\^\s*(\d+)\s*mod(?:ulo)?\s*(\d+)$/))) {
+    if (+m[3] === 0) { out("Modulo zéro : impossible.", "err"); return; }
+    out(`Le boulier cliquette : ${m[1]}^${m[2]} mod ${m[3]} = **${modpow(m[1], m[2], m[3])}**`, "ok");
+  } else if ((m = e.match(/^(\d+)\s*\^\s*(\d+)$/)) && +m[2] <= 60) {
+    out(`Le boulier cliquette : ${m[1]}^${m[2]} = **${BigInt(m[1]) ** BigInt(m[2])}**`, "ok");
+  } else if (/^[\d\s+\-*/().]+$/.test(e)) {
+    let v; try { v = Function('"use strict"; return (' + e + ")")(); } catch (x) { v = NaN; }
+    out(Number.isFinite(v) ? `Le boulier cliquette : **${v}**` : "Le boulier ne comprend pas cette opération.", Number.isFinite(v) ? "ok" : "err");
+  } else out("Le boulier connaît : `calc 5^6 mod 23`, ou une opération simple comme `calc 3*7`.", "err");
+}
+
+function secretCmd(rest) {
+  const n = parseInt(rest.find(t => /^\d+$/.test(t)), 10);
+  if (S.room !== "tour") { out("Tu n'as personne ici avec qui partager un secret.", "sys"); return; }
+  if (f().key) { out("Tu as déjà ta clé de session.", "sys"); return; }
+  if (!(n >= 2 && n <= 21)) { out("Choisis un nombre entre 2 et 21 : `secret 6`", "err"); return; }
+  S.a = n; f().sentA = false;
+  out(`Tu choisis ton secret : **${n}**. Tu ne le diras à personne. (Si tu veux en changer, refais \`secret ‹nombre›\`.)`, "ok");
+  out(`Prochaine étape : calcule ta valeur publique, \`calc ${G}^${n} mod ${P}\`, puis annonce-la avec \`dire ‹résultat›\`.`, "sys");
+}
+
+function numberSaid(n) {
+  const F = f();
+  if (S.room !== "tour") { out("Personne ne réagit.", "sys"); return; }
+  if (F.key) { out("Le coffre est déjà ouvert.", "sys"); return; }
+  if (S.a == null) { out("Tu n'as pas encore choisi de secret. (`secret ‹2-21›`)", "err"); return; }
+  const A = modpow(G, S.a, P);
+  if (!F.sentA) {
+    if (n === A) {
+      F.sentA = true;
+      say("Hellman", `${A} : c'est bien ${G}^${S.a} mod ${P}. Ève l'a entendu, tant pis, ça ne l'avance à rien. Voici ma valeur publique : **${B_PUB}**.`);
+      out(`Combine-la avec TON secret : \`calc ${B_PUB}^${S.a} mod ${P}\`, puis dis le résultat au coffre : \`dire ‹résultat›\`.`, "sys");
+      note("dh");
+    } else say("Hellman", `Non, ce n'est pas ${G}^${S.a} mod ${P}. Recalcule : \`calc ${G}^${S.a} mod ${P}\`.`);
+    return;
+  }
+  const secret = modpow(B_PUB, S.a, P);
+  if (n === secret) {
+    F.key = true; F.secretVal = secret; give("cle");
+    out(`Clic. Le coffre s'ouvre. Hellman, de son côté, a calculé ${A}^${B_SECRET} mod ${P} = ${secret} : le même nombre, sans que ce nombre n'ait jamais circulé. Ève, elle, n'a entendu que ${A} et ${B_PUB}.`, "ok");
+    out("À l'intérieur : une petite clé de cuivre. C'est la **clé de session**, légère et symétrique. Tu la gardes.", "ok");
+    note("pfs"); note("dh");
+  } else if (n === A || n === B_PUB) say("Diffie", "Ça, c'est une valeur publique : Ève la connaît. Le secret commun, c'est la valeur de l'autre combinée avec TON secret.");
+  else say("Diffie", `Pas tout à fait. Essaie : \`calc ${B_PUB}^${S.a} mod ${P}\`.`);
+}
+
+function sayCmd(txt) {
+  if (/^\d+$/.test(txt)) { numberSaid(parseInt(txt, 10)); return; }
+  out(txt ? `Tu dis « ${txt} ». Personne ne réagit.` : "Dire quoi ?", "sys");
+}
+
+function giveCmd(rest) {
+  const F = f();
+  if (!rest.length) { out("Donner quoi à qui ? (`donner ‹objet› a ‹personne›`)", "err"); return; }
+  if (/^\d+$/.test(rest[0])) { if (S.room === "tour") numberSaid(parseInt(rest[0], 10)); else out("Personne ne réagit.", "sys"); return; }
+  const [a, b] = splitArgs(rest);
+  const item = resolve(a, e => !e.npc); if (!item) return;
+  if (!S.inv.includes(item)) { out("Tu ne l'as pas sur toi.", "err"); return; }
+  const who = resolve(b || "", e => e.npc); if (!who) return;
+  if (who === "vault") {
+    if (S.room !== "banque") return;
+    if (!F.protocol) { say("Madame Vault", "Pas de précipitation : le protocole d'accueil d'abord. Les cartes sont sur la table."); return; }
+    if (item === "lettre") {
+      if (!F.sealed) { say("Madame Vault", "Cette lettre n'est pas scellée : elle a voyagé à découvert. Je ne la prends pas."); return; }
+      F.gaveLetter = true; S.inv = S.inv.filter(x => x !== "lettre");
+      out("Madame Vault ouvre la lettre avec la clé privée de la banque. Elle seule pouvait le faire.", "ok");
+    } else if (item === "bordereau") {
+      if (!F.signed) { say("Madame Vault", "Ce bordereau n'est pas signé : comment saurais-je qui me livre ?"); return; }
+      F.gaveSlip = true; S.inv = S.inv.filter(x => x !== "bordereau");
+      out("Madame Vault vérifie la signature avec ton empreinte publique de l'annuaire de la Guilde. Elle est authentique.", "ok");
+    } else { say("Madame Vault", "Je n'ai que faire de cela."); return; }
+    if (F.gaveLetter && F.gaveSlip) ending();
+    return;
+  }
+  if (who === "mallory") { out("Tu ne remets pas ta lettre à quelqu'un dont tu n'as pas vérifié l'identité.", "err"); return; }
+  say(ENT[who].names[0], "Merci, mais je n'en ai pas besoin.");
+}
+
+function ending() {
+  const F = f(); F.end = true;
+  out("Épilogue", "title");
+  out("Madame Vault exécute l'ordre d'Alice : 4 200 pièces d'or, vers le compte de Bob. Personne n'a pu lire la lettre en chemin, personne ne l'a modifiée, et la banque sait précisément qui l'a livrée.", "ok");
+  say("Maître Ada", "À ton retour, je t'ai préparé un thé. Tu sais maintenant ce que fait vraiment le petit cadenas dans la barre d'adresse : un échange de clés (Diffie-Hellman), un certificat vérifié (la chaîne de confiance), et un chiffrement symétrique rapide pour tout le reste. Et que sans l'identité, le chiffrement ne protège pas.");
+  note("hs");
+  out("FIN. Tape `carnet` pour relire tes notes, ou `recommencer` pour rejouer. D'autres aventures arrivent à Port-443 (voir ROADMAP.md).", "title");
+}
+
+function putCmd(txt) {
+  if (S.room !== "banque") { out("Il n'y a rien à poser ici.", "sys"); return; }
+  const F = f();
+  const id = resolve(txt, e => e.card); if (!id) return;
+  const c = ENT[id].card;
+  if (F.protocol) { out("Le protocole est déjà établi.", "sys"); return; }
+  if (S.table.includes(c.n)) { out("Cette carte est déjà sur la table.", "sys"); return; }
+  if (c.n !== S.table.length + 1) { say("Madame Vault", "Pas dans cet ordre. " + c.wrong); out(`(Tu as posé ${S.table.length} carte${S.table.length > 1 ? "s" : ""} sur 6. Prochaine étape : réfléchis à ce qui vient logiquement après.)`, "sys"); return; }
+  if (c.n === 3 && !F.certOK) { say("Madame Vault", "Voici mon certificat. Mais as-tu appris à en vérifier un ? Le Capitaine Chaîne te l'enseigne au Bureau des Sceaux."); return; }
+  if (c.n === 6 && !F.key) { say("Madame Vault", "Tu n'as pas de clé de session pour chiffrer les données. Les peintres de la Tour en fabriquent."); return; }
+  S.table.push(c.n);
+  out(`Tu poses **${c.title}** (${c.n}/6).`, "ok");
+  out(c.explain, "sys");
+  if (S.table.length === 6) {
+    F.protocol = true; note("hs");
+    say("Madame Vault", "Conversation établie : identité vérifiée, historique confirmé, données chiffrées. Voilà ce que j'appelle une poignée de main. Maintenant, remets-moi ta lettre (`donner lettre a vault`) et ton bordereau (`donner bordereau a vault`).");
+  }
+}
+
+function askCmd(rest) {
+  const [a, b] = splitArgs(rest);
+  const wantCert = a.includes("certificat");
+  if (S.room === "cafe" && !f().malloryDone) {
+    if (!wantCert) { out("Que veux-tu demander ? (essaie `demander certificat`)", "sys"); return; }
+    if (!f().malloryOffer) { out("Parle d'abord à la silhouette.", "sys"); return; }
+    f().certShown = true;
+    say("Silhouette", "Mon certificat ? Bien sûr, le voici.");
+    out(ENT.certmal.desc());
+    out("Examine-le attentivement. Si tu le juges douteux : `accuser mallory`. Si tu lui fais confiance : `accepter certificat`.", "sys");
+    return;
+  }
+  if (S.room === "bureau" && (a.includes("chaine") || wantCert)) { talk("capitaine"); return; }
+  out("Personne ne répond à ça.", "sys");
+}
+
+function acceptCmd(txt) {
+  const F = f();
+  if (S.room === "bureau") {
+    const id = resolve(txt, e => e.cour); if (!id) return;
+    const c = ENT[id].cour, x = COURIERS[c];
+    if (F.certOK) { out("Le Capitaine a déjà validé un certificat. Le sceau « vérifié » est posé.", "sys"); return; }
+    if (x.ok) {
+      F.certOK = true;
+      out(`« Exact », dit le Capitaine en tamponnant le parchemin du courrier ${c}. ${x.why}`, "ok");
+      note("cert");
+    } else say("Capitaine Chaîne", "Non. " + x.why.replace(/\*\*/g, "") + " Regarde mieux : trois contrôles, nom, dates, chaîne.");
+    return;
+  }
+  if (S.room === "cafe" && !F.malloryDone && F.certShown) {
+    failMitm("Tu acceptes le certificat et le cadenas qui va avec, puis tu scelles ta lettre.");
+    return;
+  }
+  out("Il n'y a rien à accepter ici.", "sys");
+}
+
+function refuseCmd(txt) {
+  const F = f();
+  if (S.room === "bureau") {
+    const id = resolve(txt, e => e.cour); if (!id) return;
+    const x = COURIERS[ENT[id].cour];
+    if (x.ok) say("Capitaine Chaîne", "Ce certificat-là est pourtant en règle. Contrôle encore : nom, dates, chaîne.");
+    else out(`« Bien vu. » ${x.why}`, "ok");
+    return;
+  }
+  if (S.room === "cafe" && !F.malloryDone) { accuseCmd(txt); return; }
+  out("Il n'y a rien à refuser ici.", "sys");
+}
+
+function accuseCmd(txt) {
+  const F = f();
+  if (S.room !== "cafe" || F.malloryDone) { out("Accuser qui ? Personne ne mérite ça ici.", "sys"); return; }
+  if (!F.malloryOffer) { out("Parle d'abord à la silhouette.", "sys"); return; }
+  if (!F.certShown) { say("Silhouette", "M'accuser ? De quoi ? Sur quelle preuve ? Demande-moi plutôt mon certificat, si tu y tiens."); return; }
+  F.malloryDone = true;
+  out("Tu refuses le certificat : son émetteur, l'« Autorité du Café Wi-Fi », ne figure dans aucun registre, et ne s'appuie sur aucune chaîne. Un cadenas fabriqué par la personne même qui veut te surveiller ne prouve rien.", "ok");
+  say("Mallory", "(elle rabat sa capuche) Bravo. J'ai lu des dizaines de lettres comme ça : il suffit qu'on me prenne mon cadenas pour celui de la banque. Si tu t'étais contenté de partager un secret avec moi, j'en aurais partagé un autre avec la banque, et j'aurais tout relayé en lisant chaque mot. C'est le certificat qui m'arrête.");
+  out("Mallory file par la porte de service. Les vigiles de la banque, prévenus, rouvrent les portes.", "ok");
+  note("mitm");
+}
+
+/* ============ Interface ============ */
+function renderBar() {
+  const bar = document.getElementById("bar"); bar.replaceChildren();
+  const add = (label, cmd, cls) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; if (cls) b.className = cls; b.addEventListener("click", () => run(cmd)); bar.append(b); };
+  Object.entries(ROOMS[S.room].exits).forEach(([d, id]) => add(`${d[0].toUpperCase() + d.slice(1)} · ${ROOMS[id].name.replace(/^L[ea]s? |^L'|^Le |^La /, "").replace(/ « .+»/, "")}`, "aller " + d, "go"));
+  add("Regarder", "regarder"); add("Inventaire", "inventaire"); add("Carnet", "carnet"); add("Indice", "indice"); add("Aide", "aide");
+}
+const input = document.getElementById("cmd");
+const history = []; let hpos = 0;
+function run(c) { history.push(c); hpos = history.length; exec(c); }
+document.getElementById("form").addEventListener("submit", e => { e.preventDefault(); const v = input.value; input.value = ""; if (v.trim()) run(v); });
+input.addEventListener("keydown", e => {
+  if (e.key === "ArrowUp" && history.length) { hpos = Math.max(0, hpos - 1); input.value = history[hpos]; e.preventDefault(); }
+  if (e.key === "ArrowDown") { hpos = Math.min(history.length, hpos + 1); input.value = history[hpos] || ""; e.preventDefault(); }
 });
-render();
+logEl.addEventListener("click", e => {
+  const c = e.target.closest && e.target.closest("code.cmd"); if (!c) return;
+  const t = c.textContent;
+  if (t.includes("‹")) { input.value = t.replace(/\s*‹.*$/, "") + " "; input.focus(); } else run(t);
+});
+logEl.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.classList && e.target.classList.contains("cmd")) { e.preventDefault(); e.target.click(); } });
+
+function start() {
+  out("Le Courrier de Port-443", "title");
+  out("Port-443 est une cité marchande où se croisent toutes les routes. Ici, les messages voyagent à pied, dans la sacoche de courriers comme toi. Et n'importe qui peut ouvrir une sacoche sur le chemin.\nOn vient de t'admettre à la Guilde des Courriers. Première mission : acheminer la lettre confidentielle d'une commerçante jusqu'à sa banque, sans que personne, jamais, ne puisse la lire ni la modifier. Une certaine Mallory rôde.", "");
+  out("Tu joues en tapant des commandes (ou en cliquant sur celles en orange). `aide` liste tout, `indice` te débloque.", "sys");
+  S.f = {}; describe();
+  out("Commence par `parler ada`.", "sys");
+}
+
+const saved = load();
+if (saved) { S = saved; out("Partie reprise. (`recommencer` pour tout effacer.)", "sys"); describe(); }
+else start();
 </script>
 </body>
 </html>

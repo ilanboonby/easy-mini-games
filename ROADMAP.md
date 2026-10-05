@@ -1,21 +1,18 @@
-# Roadmap — mini-jeux de cybersécurité
+# Roadmap
 
-Objectif : un petit jeu interactif par concept « pénible à comprendre ».
+## Fait
+Les sept premiers jeux de Port-443 sont terminés (voir README) : TLS, RSA, injections SQL/XSS, OAuth/JWT, Kerberos, hachage et mots de passe, SOP/CORS/CSRF.
 
-| # | Concept | Statut | Idée de gameplay |
-|---|---------|--------|------------------|
-| 1 | **TLS / certificats / handshake** | ✅ fait (`index.html`, quiz de révision : `revision.html`) | Aventure textuelle « Le Courrier de Port-443 » : Atelier, Tour des Peintres, Bureau des Sceaux, café de Mallory, Banque |
-| 2 | **Chiffrement asymétrique & signatures (RSA en détail)** | à faire | Fabriquer une paire de clés RSA avec de petits nombres premiers, chiffrer/signer à la main |
-| 3 | **Injections SQL / XSS** | à faire | Bac à sable : attaquer un faux formulaire, puis corriger (requêtes préparées, échappement) |
-| 4 | **Authentification : OAuth 2.0 / OpenID Connect / JWT** | à faire | Suivre les redirections et tokens d'un flux, repérer la faille (redirect_uri, `alg: none`…) |
-| 5 | **Kerberos** | à faire | Jouer le client : obtenir un TGT, puis un ticket de service, comprendre qui connaît quelle clé |
-| 6 | **Hachage, sel et mots de passe** | à faire | Casser des hachages avec/sans sel, comprendre bcrypt/argon2 |
-| 7 | **CORS / Same-Origin Policy / CSRF** | à faire | Simuler des requêtes inter-sites et décider ce que le navigateur autorise |
-
-## Univers commun
-Chaque jeu se déroule à Port-443 avec les mêmes personnages (Ada, Mallory, Ève…), dans un nouveau quartier : par exemple les Archives (injections SQL), le Palais des Passeports (OAuth/JWT), la Citadelle (Kerberos).
+## Idées pour la suite
+| Concept | Idée de gameplay |
+|---------|------------------|
+| VPN et IPsec / WireGuard | Construire un tunnel entre deux quartiers, voir ce que le fournisseur de Wi-Fi observe |
+| DNS, DNSSEC et empoisonnement de cache | Le facteur demande son chemin à un annuaire que Mallory essaie de falsifier |
+| Phishing et authentification multifacteur (TOTP, WebAuthn) | Distinguer de vrais courriers de faux, puis comprendre pourquoi une clé matérielle résiste |
+| Chaîne d'approvisionnement logicielle | Un paquet empoisonné dans l'entrepôt : signatures, verrouillage des versions |
+| Cryptographie post-quantique | Le jour où les cadenas RSA tombent : alternatives par réseaux euclidiens |
 
 ## Idées transverses
-- Sauvegarde de progression partagée entre les jeux
-- Mode « révision » avec fiches mémo
+- Sauvegarde de progression partagée entre les jeux, avec un « passeport » de badges
+- Mode « révision » avec fiches mémo de tous les carnets
 - Version anglaise

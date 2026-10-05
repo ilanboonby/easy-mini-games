@@ -1,20 +1,23 @@
-# TLS Quest : Le Courrier de Port-443
+# Port-443 Quest
 
-Jeu d'aventure textuel (français, à la Terminus) pour comprendre TLS en jouant une histoire complète.
+Sept aventures textuelles en français (à la Terminus) pour comprendre des concepts de cybersécurité réputés pénibles, chacune avec une vraie histoire, des puzzles, des schémas SVG qui se débloquent en jouant, un carnet de cours et un bilan final qui décode les analogies et liste les simplifications.
 
-Tu es apprenti·e à la Guilde des Courriers de Port-443. Mission : livrer la lettre confidentielle d'Alice à sa banque, malgré Mallory qui lit le courrier au café Wi-Fi. Chaque lieu enseigne un concept :
+| # | Jeu | Concept | Fil rouge |
+|---|-----|---------|-----------|
+| 1 | Le Courrier de Port-443 | TLS, certificats, HTTPS | Livrer une lettre à la banque malgré Mallory |
+| 2 | La Forge de Rivest | RSA, factorisation, signature | Forger une paire de clés à la main |
+| 3 | Les Archives de Port-443 | Injection SQL, XSS | Auditer (avec mandat) puis corriger |
+| 4 | Le Palais des Passeports | OAuth 2.0, JWT | Une « clé de voiturier » numérique, et quatre attaques |
+| 5 | La Citadelle des Tickets | Kerberos | S'authentifier sans que le mot de passe circule |
+| 6 | L'Apothicaire des Empreintes | Hachage, sel, mots de passe | Analyser une fuite avec du vrai SHA-256 |
+| 7 | Le Quartier des Douanes | SOP, CORS, CSRF | Le navigateur à la frontière |
 
-| Lieu | Concept |
-|------|---------|
-| Atelier de Dame Rivest | clés publique/privée, chiffrement, signature |
-| Tour des Peintres | Diffie-Hellman, clé de session, confidentialité persistante |
-| Bureau des Sceaux | certificats, chaîne de confiance |
-| Café « Wi-Fi Gratuit » | attaque de l'homme du milieu |
-| Banque du Port | handshake TLS 1.3 dans l'ordre |
+**Jouer** : ouvrir `index.html` dans un navigateur (aucun build, aucune dépendance). La progression de chaque jeu est sauvegardée dans le navigateur.
+**Réviser** : `revision.html` contient la version quiz du jeu TLS.
 
-Un carnet se remplit au fil du jeu (8 fiches de cours, commande `carnet`). En fin de partie, un bilan décode les analogies (cadenas, sceau, peintres, registre…) et signale les simplifications (commande `analogies`). Des schémas SVG se débloquent au fil des étapes (commande `schema`).
+## Organisation du code
+- `engine.js` / `engine.css` : moteur partagé (analyse des commandes, inventaire, indices, carnet, schémas, menu).
+- `games/*.js` : un fichier par jeu (lieux, personnages, puzzles, schémas, bilan).
+- `tests/` : un parcours complet par jeu, rejoué dans un navigateur par `node tests/run-all.js` (nécessite Playwright).
 
-**Jouer** : ouvrir `index.html` dans un navigateur (aucune dépendance). La partie est sauvegardée dans le navigateur.
-**Réviser** : `revision.html` contient la version quiz.
-
-Les prochains univers sont listés dans [ROADMAP.md](ROADMAP.md).
+Les prochaines idées sont dans [ROADMAP.md](ROADMAP.md).

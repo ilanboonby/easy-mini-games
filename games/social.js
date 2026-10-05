@@ -36,6 +36,7 @@
     preuve: ["Preuve sociale", "« tout le monde le fait », donc on s'aligne"],
     curiosite: ["Curiosité", "l'envie de savoir ce qu'il y a derrière le secret"],
   };
+  const SHORTLEV = { autorite: "on obéit à un titre ou un rôle", urgence: "pas le temps de vérifier", rarete: "occasion exclusive et brève", reciprocite: "on rend un service reçu", sympathie: "on aide qui nous plaît", preuve: "« tout le monde le fait »" };
   const levKey = t => has(t, /autor/) ? "autorite" : has(t, /urgen|press|vite|delai/) ? "urgence" : has(t, /rare|exclusi|penur/) ? "rarete" : has(t, /reciproc|dette|service rendu/) ? "reciprocite" : has(t, /sympath|aimab|charme|gentil/) ? "sympathie" : has(t, /preuve|social|conform|tout le monde/) ? "preuve" : has(t, /curio/) ? "curiosite" : null;
 
   /* ---------- données des épisodes ---------- */
@@ -108,7 +109,7 @@
     s3: {
       name: "L'appel sympathique", note: "collecte", levers: ["sympathie", "reciprocite"],
       clues: { sympathie: "Ton chaleureux, compliments (« vous êtes si aimable »), tutoiement doux : on a envie de lui faire plaisir.", reciprocite: "« Je vous dépanne gratuitement, vous pouvez bien m'aider à votre tour » : un petit service rendu d'abord, une dette ensuite.", preuve: "« Tout le monde m'a répondu sans problème »." },
-      phases: [["Un prestataire plausible (reprographie), un ton", "chaleureux, un petit service rendu d'abord."], ["Prétexte : envoyer une facture, mettre à", "jour un pilote d'impression."], ["Pression douce : sympathie, dette de service", "(« je vous ai dépannée, non ? »)."], ["Action : trois réponses anodines, bout à bout :", "organigramme, outils, horaires."]],
+      phases: [["Un prestataire plausible, un ton chaleureux,", "un petit service rendu d'abord."], ["Prétexte : envoyer une facture, mettre à", "jour un pilote d'impression."], ["Pression douce : sympathie, dette de service", "(« je vous ai dépannée, non ? »)."], ["Action : trois réponses anodines, bout à bout :", "organigramme, outils, horaires."]],
       press: [], rep: { win: "Léa consigne : « Appel de reconnaissance, prestataire fictif, trois questions ». Elle prévient l'accueil et la compta : si Camille rappelle, personne ne répondra.", lose: "Léa note exactement ce qui a été dit, pour que l'équipe sache ce que l'appelante sait déjà. Rien n'est effaçable, mais on peut s'y préparer : les noms et horaires fuités seront surveillés." },
       intro() {
         out("Le standard sonne. Écran : « numéro de société inconnu ». Tu décroches.", "sys");
@@ -852,11 +853,11 @@
       const found = F().fl, keys = ["autorite", "urgence", "rarete", "reciprocite", "sympathie", "preuve"];
       const boxes = keys.map((k, i) => {
         const col = i % 2, row = Math.floor(i / 2), x = 6 + col * 208, y = 8 + row * 66, ok = found.includes(k);
-        return R(x, y, 200, 58, ok ? "f-ok" : "f-pub") + T(x + 100, y + 22, (ok ? "✔ " : "") + LEV[k][0], "f-b " + (ok ? "ft-ok" : "ft-pub")) + T(x + 100, y + 42, LEV[k][1].length > 38 ? LEV[k][1].slice(0, 36) + "…" : LEV[k][1], "f-s");
+        return R(x, y, 200, 58, ok ? "f-ok" : "f-pub") + T(x + 100, y + 22, (ok ? "✔ " : "") + LEV[k][0], "f-b " + (ok ? "ft-ok" : "ft-pub")) + T(x + 100, y + 42, SHORTLEV[k], "f-s");
       }).join("");
       return {
         cap: "Les six leviers psychologiques : en vert, ceux que tu as identifiés dans les appels. Une demande qui en cumule plusieurs (autorité + urgence, par exemple) est un signal d'alerte. (La curiosité sert d'appât pour les supports USB.)",
-        svg: SVG(212, "Leviers psychologiques", boxes + T(210, 206, "à retenir : plusieurs leviers à la fois = on ralentit", "f-s")),
+        svg: SVG(224, "Leviers psychologiques", boxes + T(210, 216, "à retenir : plusieurs leviers à la fois = on ralentit", "f-s")),
       };
     },
     rappel: () => ({
@@ -867,9 +868,8 @@
         R(284, 10, 130, 44, "f-pub") + T(349, 30, "Annuaire", "f-b ft-pub") + T(349, 46, "numéros vérifiés", "f-s") +
         AR(126, 32, 150, 32, "f-bad") + T(138, 70, "1. demande pressante", "f-s ft-bad") +
         AR(260, 32, 284, 32, "f-pub") + T(272, 70, "2. tu raccroches", "f-s ft-pub") +
-        LN(10, 85, 410, 85, "f-dash") +
         R(150, 108, 110, 44, "f-ok") + T(205, 128, "Vraie personne", "f-b ft-ok") + T(205, 144, "numéro connu", "f-s") +
-        AR(205, 54, 205, 108, "f-ok") + T(212, 90, "3. TU rappelles", "f-s ft-ok", "start") +
+        AR(205, 54, 205, 108, "f-ok") + T(214, 86, "3. TU rappelles", "f-s ft-ok", "start") +
         R(10, 180, 180, 54, "f-ok") + T(100, 200, "confirme : on agit", "f-b ft-ok") + T(100, 218, "(et on le consigne)", "f-s") +
         R(230, 180, 180, 54, "f-bad") + T(320, 200, "ne sait rien : imposteur", "f-b ft-bad") + T(320, 218, "(on signale tout de suite)", "f-s") +
         AR(205, 152, 100, 180, "f-ok") + AR(205, 152, 320, 180, "f-bad")),
@@ -906,7 +906,7 @@
       const yy = 46 + rows * 24 + 8;
       b += LN(6, yy - 14, 414, yy - 14) + T(6, yy + 6, "résultat", "f-b f-s", "start");
       cols.forEach((c, i) => { const e = evalScn(c.id, pol), cx = X0 + i * DX + 18; b += T(cx, yy + 6, pol.length ? (e.st === "stop" ? "✔" : e.st === "limit" ? "~" : "✗") : "?", "f-b " + (e.st === "stop" ? "ft-ok" : e.st === "limit" ? "" : "ft-bad")); });
-      b += T(210, yy + 30, "✔ arrête  ·  ~ limite les dégâts  ·  ✗ échoue  ·  ⚠ rend l'attaque plus facile", "f-s");
+      b += T(210, yy + 30, "✔ arrête · ~ limite · ✗ échoue · ⚠ aggrave", "f-s");
       return { cap: "Matrice règles × épisodes : S1 technicien, S2 directeur, S3 collecte, S4 visiteuse, S5 clé USB, S6 code SMS. Un ✔ en bas signifie qu'au moins une règle efficace arrête l'épisode.", svg: SVG(H, "Matrice politique par scénario", b) };
     },
   };

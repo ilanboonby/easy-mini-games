@@ -1,1 +1,10 @@
-[]
+["parler ada","aller nord","parler eve","examiner registre","evaluer rsa 2048","evaluer aes 128","evaluer aes 256","evaluer sha 256","evaluer ecc","evaluer sha 384",
+"classer tls urgent","classer tls planifier","classer code urgent","classer vpn urgent","classer sauvegardes planifier","classer sauvegardes ok","classer archives planifier","classer journaux ok",
+"aller sud","aller est","parler mallory","periode 14","factoriser 14","periode 2","factoriser 2",
+"periode 4","factoriser 4","periode 5","factoriser 5","periode 2","factoriser 2",
+"periode 2","factoriser 2","periode 5","factoriser 5","echelle 2048","aller ouest",
+"aller ouest","resoudre avec bruit","resoudre sans bruit","resoudre avec bruit","chiffrer 1","dechiffrer sans cle","dechiffrer","bruit 1","bruit 12",
+"aller est","aller sud","echanger","deriver classique","simuler shor","deriver hybride","simuler shor","simuler maths","simuler tout","tailles","budget hybride mldsa","budget x25519 ecdsa","budget hybride ecdsa",
+"aller nord","migrer v1","migrer v2","negocier","activer hybride","negocier",
+"aller sud","aller est","forger","signer OUVRIR LE COFFRE A NEUF HEURES","verifier","forger","signer FERMER LE COFFRE A MIDI","forger","verifier forgee",
+"aller ouest","aller nord","parler ada"]

@@ -259,7 +259,7 @@ const DEF = {
   debrief() { if (G.isEnd()) G.debrief(); else out("Termine d'abord l'aventure : ce bilan dévoile toutes les astuces du jeu.", "sys"); },
   schema(c) { schemaCmd(c.target); },
   restart(c) {
-    if (c.rest[0] === "oui") { wipe(); S = fresh(); logEl.replaceChildren(); begin(); }
+    if (c.rest[0] === "oui") { wipe(); S = fresh(); if (G.setup) G.setup(); logEl.replaceChildren(); begin(); }
     else out("Cela efface toute ta progression dans ce jeu. Pour confirmer : `recommencer oui`", "err");
   },
 };

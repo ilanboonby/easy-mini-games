@@ -160,8 +160,7 @@
     if (!x.eveBlock) return "eve3";
     if (!x.lost) return "lost";
     if (!x.rkGen) return "rkgen";
-    if (x.rkState !== "coffre") return "rksafe";
-    if (!x.restored) return "restore";
+    if (!x.restored) return x.rkState !== "coffre" ? "rksafe" : "restore";
     if (!x.wiped) return "wipe";
     if (x.rkState !== "detruite") return "rkgone";
     if (!x.proof) return "proof";
@@ -741,14 +740,14 @@
       let b = "";
       b += R(8, 8, 196, 38, "f-priv") + T(106, 24, "phrase de passe", "f-b") + T(106, 39, "« " + ph + " »", "f-s");
       b += AR(106, 46, 106, 62);
-      b += R(8, 62, 196, 38) + T(106, 78, h.iter > 1 ? "dérivation lente (KDF)" : "dérivation rapide (1 hachage)", "f-b") + T(106, 93, "SHA-256 × " + h.iter + ", sel " + h.salt, "f-s");
+      b += R(8, 62, 196, 38) + T(106, 78, h.iter > 1 ? "dérivation lente (KDF)" : "dérivation rapide (×1)", "f-b") + T(106, 93, "SHA-256 × " + h.iter + ", sel " + h.salt, "f-s");
       b += AR(106, 100, 106, 116);
       b += R(8, 116, 196, 38, "f-pub") + T(106, 132, "KEK : clé d'enveloppe", "f-b ft-pub") + T(106, 147, sh(kek, 10), "f-s");
       b += AR(106, 154, 106, 170);
       b += R(8, 170, 196, 38, x.wiped ? "f-bad" : open ? "f-bad" : "f-ok") + T(106, 186, "DEK : clé de données", "f-b") + T(106, 201, x.wiped ? "perdue pour toujours" : open ? "en mémoire (volume ouvert)" : "absente de la mémoire", "f-s " + (open && !x.wiped ? "ft-bad" : "ft-ok"));
       b += AR(106, 208, 106, 224);
       b += R(8, 224, 196, 38) + T(106, 240, "volume : secteurs chiffrés", "f-b") + T(106, 255, "flux(DEK, n° de secteur)", "f-s");
-      b += R(222, 8, 190, 108, x.wiped ? "f-bad" : "") + T(317, 24, "entête (lisible sur le disque)", "f-b");
+      b += R(222, 8, 190, 108, x.wiped ? "f-bad" : "") + T(317, 24, "entête (sur le disque)", "f-b");
       b += T(230, 42, "sel : " + h.salt, "f-s", "start") + T(230, 58, "itérations : " + h.iter, "f-s", "start") + T(230, 74, "DEK enveloppée :", "f-s", "start") + T(230, 90, sh(h.wrapped, 14), "f-s ft-pub", "start") + T(230, 106, "contrôle : " + h.check, "f-s", "start");
       b += LN(222, 90, 206, 135, "f-dash") ;
       b += R(222, 130, 190, 132, "f-ok") + T(317, 146, "changer la phrase :", "f-b") + T(317, 162, "nouvelle KEK", "f-s") + T(317, 177, "+ DEK ré-enveloppée", "f-s") + T(317, 192, "volume intact", "f-s ft-ok") + T(317, 214, "changer la DEK :", "f-b") + T(317, 230, "tout re-chiffrer", "f-s ft-bad") + T(317, 245, "(des heures)", "f-s ft-bad");
@@ -760,7 +759,7 @@
       const panel = (ox, arr, fill) => { let s = ""; arr.forEach((v, i) => { s += `<rect x="${ox + (i % MW) * 8}" y="${30 + Math.floor(i / MW) * 8}" width="8" height="8" fill="${fill(v)}"/>`; }); return s + `<rect x="${ox}" y="30" width="128" height="80" fill="none" class="f-box"/>`; };
       let b = panel(8, plain, v => (v ? "var(--ink)" : "var(--panel)")) + panel(146, cells[0], hue) + panel(284, cells[1], hue);
       b += T(72, 20, "clair", "f-b") + T(210, 20, "ECB", "f-b ft-bad") + T(348, 20, "tweak (position)", "f-b ft-ok");
-      b += T(72, 128, "un cadenas", "f-s") + T(210, 128, new Set(cells[0]).size + " valeurs : forme visible", "f-s ft-bad") + T(348, 128, new Set(cells[1]).size + " valeurs : bruit", "f-s ft-ok");
+      b += T(72, 128, "un cadenas", "f-s") + T(210, 128, new Set(cells[0]).size + " valeurs : forme", "f-s ft-bad") + T(348, 128, new Set(cells[1]).size + " valeurs : bruit", "f-s ft-ok");
       b += T(210, 152, "même clé, même clair : seul le mode change", "f-s");
       return { cap: "Chaque carreau est un bloc chiffré, une couleur par valeur chiffrée. En ECB, deux blocs identiques donnent la même couleur : le cadenas apparaît. Avec un tweak lié à la position, chaque carreau est différent.", svg: SVG(164, "ECB contre mode à tweak", b) };
     },
@@ -778,8 +777,8 @@
       b += AR(138, 52, 252, 52, bad ? "f-bad" : "f-pub") + T(195, 44, clear ? "registres en clair" : x.bk ? "archive chiffrée" : "—", "f-s");
       b += R(252, 14, 160, 118, bad ? "f-bad" : "f-ok") + T(332, 32, "serveur (hébergeur, Ève)", "f-b") + T(332, 52, clear ? "registres LISIBLES" : x.bk ? "archive.enc : bruit" : "(vide)", "f-s " + (clear ? "ft-bad" : ""));
       b += T(332, 72, withKey ? "key.txt : clé à côté ✗" : x.bk === "chiffre" ? "aucune clé ici ✔" : "", "f-s " + (withKey ? "ft-bad" : "ft-ok"));
-      b += T(332, 92, x.slot ? "recuperation.slot (BK sous RK)" : "", "f-s");
-      b += R(8, 150, 200, 76, x.rkState === "coffre" ? "f-ok" : x.rkState === "detruite" ? "f-bad" : "") + T(108, 168, "coffre de la Guilde", "f-b") + T(108, 188, x.rkState === "coffre" ? "clé de récupération RK ✔" : x.rkState === "poche" ? "RK dans ta poche ✗" : x.rkState === "detruite" ? "RK brûlée : rien ne se restaure" : "(pas de séquestre)", "f-s " + (x.rkState === "coffre" ? "ft-ok" : "")) + T(108, 208, "séparé du serveur et du portable", "f-s");
+      b += T(332, 92, x.slot ? "slot récup. (BK sous RK)" : "", "f-s");
+      b += R(8, 150, 200, 76, x.rkState === "coffre" ? "f-ok" : x.rkState === "detruite" ? "f-bad" : "") + T(108, 168, "coffre de la Guilde", "f-b") + T(108, 188, x.rkState === "coffre" ? "clé de récupération RK ✔" : x.rkState === "poche" ? "RK dans ta poche ✗" : x.rkState === "detruite" ? "RK brûlée : rien à restaurer" : "(pas de séquestre)", "f-s " + (x.rkState === "coffre" ? "ft-ok" : "")) + T(108, 208, "séparé du serveur/portable", "f-s");
       b += T(312, 175, "règle : la clé ne vit jamais", "f-s") + T(312, 190, "avec les données ; et il en", "f-s") + T(312, 205, "faut une copie de secours", "f-s") + T(312, 220, "gardée à part", "f-s");
       return { cap: "Chiffrer côté client protège contre l'hébergeur à condition de garder la clé ailleurs ; la clé de récupération, au coffre, évite que la perte du portable emporte les sauvegardes.", svg: SVG(240, "Sauvegarde chiffrée et séparation des clés", b) };
     },

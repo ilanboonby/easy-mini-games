@@ -64,3 +64,5 @@ input { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--
 .back:hover, .back:focus-visible { text-decoration: underline; outline: none; }
 #log p.codeblock { background: var(--cmd-bg); border-left: 3px solid var(--you); padding: 8px 10px; border-radius: 4px; color: var(--title); font-size: .9rem; }
 [hidden] { display: none !important; }
+.theme { color: var(--dim); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; margin: 18px 0 8px; }
+.theme:first-child { margin-top: 0; }

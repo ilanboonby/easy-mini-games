@@ -332,17 +332,27 @@ function showHub() {
   headTitle.textContent = "PORT-443 QUEST"; headSub.textContent = Object.keys(GAMES).length + " aventures pour comprendre la cybersécurité";
   document.title = "Port-443 Quest";
   const cards = document.getElementById("cards"); cards.replaceChildren();
-  Object.values(GAMES).sort((a, b) => a.order - b.order).forEach(g => {
-    const sv = readSave(g.id);
-    const total = Object.keys(g.notes).length;
-    const done = sv && sv.f && sv.f.end;
-    const b = document.createElement("button"); b.type = "button"; b.dataset.id = g.id; b.className = "gcard" + (done ? " done" : "");
-    b.innerHTML = `<b></b><small></small><span class="meta"></span>`;
-    b.querySelector("b").textContent = `${g.order}. ${g.title}`;
-    b.querySelector("small").textContent = g.blurb;
-    b.querySelector(".meta").textContent = done ? `Terminé · carnet ${sv.notes.length}/${total}` : sv ? `En cours · carnet ${sv.notes.length}/${total}` : `Concept : ${g.concept}`;
-    b.addEventListener("click", () => openGame(g.id));
-    cards.append(b);
+  cards.className = "";
+  const THEMES = ["Cryptographie", "Réseau", "Applications web", "Identité et accès", "Logiciel et données", "Cryptographie avancée", "Détection et réponse"];
+  const THEME_OF = { tls: 0, rsa: 0, hash: 0, vpn: 1, dns: 1, firewall: 1, wifi: 1, web: 2, cors: 2, oauth: 3, kerberos: 3, mfa: 3, rbac: 3, secrets: 3, supply: 4, diskenc: 4, ransom: 4, pqc: 5, chain: 5, zkp: 5, logs: 6, incident: 6, social: 6 };
+  const games = Object.values(GAMES).sort((a, b) => a.order - b.order);
+  THEMES.forEach((name, ti) => {
+    const inTheme = games.filter(g => (THEME_OF[g.id] ?? 0) === ti);
+    if (!inTheme.length) return;
+    const h = document.createElement("p"); h.className = "theme"; h.textContent = name; cards.append(h);
+    const grid = document.createElement("div"); grid.className = "cards"; cards.append(grid);
+    inTheme.forEach(g => {
+      const sv = readSave(g.id);
+      const total = Object.keys(g.notes).length;
+      const done = sv && sv.f && sv.f.end;
+      const b = document.createElement("button"); b.type = "button"; b.dataset.id = g.id; b.className = "gcard" + (done ? " done" : "");
+      b.innerHTML = `<b></b><small></small><span class="meta"></span>`;
+      b.querySelector("b").textContent = g.title;
+      b.querySelector("small").textContent = g.blurb;
+      b.querySelector(".meta").textContent = done ? `Terminé · carnet ${sv.notes.length}/${total}` : sv ? `En cours · carnet ${sv.notes.length}/${total}` : `Concept : ${g.concept}`;
+      b.addEventListener("click", () => openGame(g.id));
+      grid.append(b);
+    });
   });
 }
 backBtn.addEventListener("click", showHub);

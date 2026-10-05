@@ -41,6 +41,22 @@ form { display: flex; gap: 8px; align-items: center; border: 1px solid var(--lin
 form:focus-within { border-color: var(--you); }
 form label { color: var(--you); font-weight: 600; }
 input { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--ink); font: inherit; font-size: 16px; padding: 6px 0; outline: none; }
+.fig { margin: 0 0 .9em; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 10px; }
+.fig svg { display: block; width: 100%; height: auto; }
+.fig figcaption { color: var(--dim); font-size: .8rem; margin-top: 6px; }
+.f-t { fill: var(--ink); font: 12px var(--mono); }
+.f-b { font-weight: 600; fill: var(--title); }
+.f-s { font-size: 10.5px; fill: var(--dim); }
+.ft-pub { fill: var(--npc); } .ft-priv { fill: var(--you); } .ft-bad { fill: var(--bad); } .ft-ok { fill: var(--ok); }
+.f-box { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+.f-box.f-pub, .f-lock.f-pub rect, .f-lock.f-pub path { stroke: var(--npc); }
+.f-box.f-priv { stroke: var(--you); } .f-box.f-bad { stroke: var(--bad); } .f-box.f-ok { stroke: var(--ok); }
+.f-ln { stroke: var(--dim); stroke-width: 1.5; fill: none; } .f-ln.f-pub { stroke: var(--npc); } .f-ln.f-bad { stroke: var(--bad); }
+.f-dash { stroke-dasharray: 4 4; }
+.f-mk { fill: var(--dim); }
+.f-lock rect { fill: var(--panel); stroke-width: 1.6; } .f-lock path { fill: none; stroke-width: 1.6; }
+.f-lock.f-pub rect, .f-lock.f-pub path { stroke: var(--npc); } .f-lock.f-priv rect, .f-lock.f-priv path { stroke: var(--you); }
+.f-key { fill: none; stroke-width: 1.6; } .f-key.f-pub { stroke: var(--npc); } .f-key.f-priv { stroke: var(--you); }
 ::selection { background: #3a4766; }
 </style>
 </head>
@@ -400,7 +416,7 @@ const VERBS = {
   inv: ["inventaire", "inv", "i"], notes: ["carnet", "notes", "codex"], hint: ["indice", "aide moi"], help: ["aide", "help", "commandes", "?"],
   secret: ["secret", "choisir"], put: ["poser", "placer", "mettre"], ask: ["demander", "reclamer", "exiger"],
   accept: ["accepter", "valider", "approuver"], refuse: ["refuser", "rejeter"], accuse: ["accuser", "denoncer", "demasquer", "arreter"],
-  restart: ["recommencer", "reset"], debrief: ["analogies", "debrief", "bilan", "explications"],
+  restart: ["recommencer", "reset"], debrief: ["analogies", "debrief", "bilan", "explications"], schema: ["schema", "schemas", "image", "images", "dessin"],
 };
 const VERB_OF = {};
 for (const [k, arr] of Object.entries(VERBS)) arr.forEach(v => VERB_OF[v] = k);
@@ -450,14 +466,14 @@ function use(aTxt, bTxt) {
       if (F.sealed) { out("La lettre est déjà scellée avec ce cadenas.", "sys"); return; }
       F.sealed = true;
       out("Clac. Tu fermes la lettre avec le cadenas ouvert de la banque. Maintenant, seule la banque, avec sa clé privée, pourra l'ouvrir : pas toi, pas Mallory, personne d'autre.", "ok");
-      note("asym"); break;
+      note("asym"); fig("chiffrement"); break;
     case "cadcour+lettre":
       out("Tu fermes la lettre avec ton propre cadenas… et tu réalises que seul TOI pourrais l'ouvrir. La banque n'y a pas accès. On chiffre avec la clé publique du DESTINATAIRE. Tu rouvres la lettre.", "err"); break;
     case "bordereau+sceau":
       if (F.signed) { out("Le bordereau est déjà signé.", "sys"); return; }
       F.signed = true;
       out("Tu presses ton sceau sur le bordereau. Une empreinte unique apparaît : seule ta clé privée peut la produire, mais n'importe qui peut la vérifier avec ton empreinte publique, affichée à l'annuaire de la Guilde.", "ok");
-      note("sig"); break;
+      note("sig"); fig("signature"); break;
     case "bordereau+cadbanque": case "bordereau+cadcour":
       out("Un cadenas ouvert est public : n'importe qui peut en fabriquer un. Il ne prouve pas qui tu es. Pour signer, il faut ta clé PRIVÉE, c'est-à-dire ton sceau.", "err"); break;
     case "lettre+sceau":
@@ -475,7 +491,7 @@ function failMitm(intro) {
   out(intro, "err");
   say("Mallory", "Merci ! (elle rabat sa capuche en arrière) Ce cadenas, c'est moi qui l'ai fabriqué, et c'est MA clé privée qui l'ouvre. Je vais lire ta lettre, la refermer avec le vrai cadenas de la banque, et la lui faire parvenir. Ni Alice ni la banque ne verront jamais rien.");
   out("C'est l'attaque de l'homme du milieu : la lettre était bien chiffrée, mais pour la mauvaise personne. Ada te rend une nouvelle lettre. Retourne à l'Atelier la sceller avec le VRAI cadenas, puis reviens avec de meilleures questions : exige un certificat.", "err");
-  note("mitm");
+  note("mitm"); fig("mitm", false);
 }
 
 function exec(raw) {
@@ -532,6 +548,7 @@ function exec(raw) {
     case "accept": acceptCmd(target); break;
     case "refuse": refuseCmd(target); break;
     case "accuse": accuseCmd(target); break;
+    case "schema": schemaCmd(target); break;
     case "debrief": if (F.end) debrief(); else out("Termine d'abord l'aventure : ce bilan dévoile toutes les astuces du jeu.", "sys"); break;
     case "restart":
       if (rest[0] === "oui") { wipe(); S = fresh(); logEl.replaceChildren(); start(); }
@@ -543,7 +560,7 @@ function exec(raw) {
 
 function help() {
   out("Commandes utiles", "title");
-  out("`regarder` · `examiner ‹objet›` · `aller ‹direction›` (ou n, s, e, o) · `prendre ‹objet›`\n`utiliser ‹objet› sur ‹objet›` · `parler ‹personne›` · `donner ‹objet› a ‹personne›`\n`demander ‹chose›` · `dire ‹mot ou nombre›` · `poser ‹carte›` · `accepter` / `refuser` / `accuser`\n`calc ‹a^b mod p›` (boulier de poche) · `secret ‹nombre›`\n`inventaire` · `carnet` · `indice` · `analogies` (en fin de partie) · `recommencer`", "sys");
+  out("`regarder` · `examiner ‹objet›` · `aller ‹direction›` (ou n, s, e, o) · `prendre ‹objet›`\n`utiliser ‹objet› sur ‹objet›` · `parler ‹personne›` · `donner ‹objet› a ‹personne›`\n`demander ‹chose›` · `dire ‹mot ou nombre›` · `poser ‹carte›` · `accepter` / `refuser` / `accuser`\n`calc ‹a^b mod p›` (boulier de poche) · `secret ‹nombre›`\n`inventaire` · `carnet` · `schema` (schémas débloqués) · `indice` · `analogies` (en fin de partie) · `recommencer`", "sys");
   out("Astuce : les commandes en orange sont cliquables.", "sys");
 }
 
@@ -582,7 +599,7 @@ function numberSaid(n) {
       F.sentA = true;
       say("Hellman", `${A} : c'est bien ${G}^${S.a} mod ${P}. Ève l'a entendu, tant pis, ça ne l'avance à rien. Voici ma valeur publique : **${B_PUB}**.`);
       out(`Combine-la avec TON secret : \`calc ${B_PUB}^${S.a} mod ${P}\`, puis dis le résultat au coffre : \`dire ‹résultat›\`.`, "sys");
-      note("dh");
+      note("dh"); fig("echange", { ...dhArgs(), S: null });
     } else say("Hellman", `Non, ce n'est pas ${G}^${S.a} mod ${P}. Recalcule : \`calc ${G}^${S.a} mod ${P}\`.`);
     return;
   }
@@ -591,7 +608,7 @@ function numberSaid(n) {
     F.key = true; F.secretVal = secret; give("cle");
     out(`Clic. Le coffre s'ouvre. Hellman, de son côté, a calculé ${A}^${B_SECRET} mod ${P} = ${secret} : le même nombre, sans que ce nombre n'ait jamais circulé. Ève, elle, n'a entendu que ${A} et ${B_PUB}.`, "ok");
     out("À l'intérieur : une petite clé de cuivre. C'est la **clé de session**, légère et symétrique. Tu la gardes.", "ok");
-    note("pfs"); note("dh");
+    note("pfs"); note("dh"); fig("echange", dhArgs());
   } else if (n === A || n === B_PUB) say("Diffie", "Ça, c'est une valeur publique : Ève la connaît. Le secret commun, c'est la valeur de l'autre combinée avec TON secret.");
   else say("Diffie", `Pas tout à fait. Essaie : \`calc ${B_PUB}^${S.a} mod ${P}\`.`);
 }
@@ -667,7 +684,7 @@ function putCmd(txt) {
   out(`Tu poses **${c.title}** (${c.n}/6).`, "ok");
   out(c.explain, "sys");
   if (S.table.length === 6) {
-    F.protocol = true; note("hs");
+    F.protocol = true; note("hs"); fig("handshake");
     say("Madame Vault", "Conversation établie : identité vérifiée, historique confirmé, données chiffrées. Voilà ce que j'appelle une poignée de main. Maintenant, remets-moi ta lettre (`donner lettre a vault`) et ton bordereau (`donner bordereau a vault`).");
   }
 }
@@ -697,7 +714,7 @@ function acceptCmd(txt) {
     if (x.ok) {
       F.certOK = true;
       out(`« Exact », dit le Capitaine en tamponnant le parchemin du courrier ${c}. ${x.why}`, "ok");
-      note("cert");
+      note("cert"); fig("chaine");
     } else say("Capitaine Chaîne", "Non. " + x.why.replace(/\*\*/g, "") + " Regarde mieux : trois contrôles, nom, dates, chaîne.");
     return;
   }
@@ -730,8 +747,122 @@ function accuseCmd(txt) {
   out("Tu refuses le certificat : son émetteur, l'« Autorité du Café Wi-Fi », ne figure dans aucun registre, et ne s'appuie sur aucune chaîne. Un cadenas fabriqué par la personne même qui veut te surveiller ne prouve rien.", "ok");
   say("Mallory", "(elle rabat sa capuche) Bravo. J'ai lu des dizaines de lettres comme ça : il suffit qu'on me prenne mon cadenas pour celui de la banque. Si tu t'étais contenté de partager un secret avec moi, j'en aurais partagé un autre avec la banque, et j'aurais tout relayé en lisant chaque mot. C'est le certificat qui m'arrête.");
   out("Mallory file par la porte de service. Les vigiles de la banque, prévenus, rouvrent les portes.", "ok");
-  note("mitm");
+  note("mitm"); fig("mitm", true);
 }
+
+
+/* ============ Schémas (SVG) débloqués au fil de l'histoire ============ */
+const T = (x, y, t, c, a) => `<text x="${x}" y="${y}" text-anchor="${a || "middle"}" class="f-t ${c || ""}">${t}</text>`;
+const R = (x, y, w, h, c) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" class="f-box ${c || ""}"/>`;
+const AR = (x1, y1, x2, y2, c, both) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="f-ln ${c || ""}" marker-end="url(#fa)"${both ? ' marker-start="url(#fa)"' : ""}/>`;
+const LOCK = (x, y, c) => `<g class="f-lock ${c}"><path d="M${x + 4},${y} v-6 a8,8 0 0 1 16,0 v6"/><rect x="${x}" y="${y}" width="24" height="18" rx="3"/></g>`;
+const KEY = (x, y, c) => `<g class="f-key ${c}"><circle cx="${x}" cy="${y}" r="6"/><path d="M${x + 6},${y} h20 m-5,0 v6 m-6,-6 v5"/></g>`;
+const SVG = (h, label, body) => `<svg viewBox="0 0 420 ${h}" role="img" aria-label="${label}">${body}</svg>`;
+
+const FIGS = {
+  chiffrement: () => ({
+    cap: "Alice ferme sa lettre avec le cadenas PUBLIC de la banque. Mallory a beau l'intercepter, seule la clé PRIVÉE de la banque l'ouvre.",
+    svg: SVG(190, "Alice chiffre avec la clé publique de la banque, la banque déchiffre avec sa clé privée",
+      R(8, 62, 84, 52) + T(50, 84, "Alice", "f-b") + T(50, 102, "lettre claire", "f-s") +
+      AR(92, 88, 150, 88) + LOCK(162, 82, "f-pub") + T(174, 60, "cadenas public", "ft-pub") + T(174, 46, "de la banque", "ft-pub") +
+      AR(198, 88, 326, 88) + T(262, 78, "lettre chiffrée", "") + T(250, 112, "Mallory : illisible", "ft-bad") +
+      R(326, 62, 86, 52) + T(369, 84, "Banque", "f-b") + T(369, 102, "lettre claire", "f-s") +
+      KEY(296, 150, "f-priv") + T(330, 154, "clé privée", "ft-priv", "start") + T(412, 172, "seule elle ouvre", "f-s", "end"))
+  }),
+  signature: () => ({
+    cap: "Tu signes avec ton sceau (clé privée). La banque vérifie avec ton empreinte publique : elle sait que c'est toi et que le bordereau n'a pas changé.",
+    svg: SVG(200, "Signature avec la clé privée, vérification avec la clé publique",
+      R(8, 50, 84, 56) + T(50, 74, "Toi", "f-b") + T(50, 92, "(courrier)", "f-s") +
+      KEY(24, 132, "f-priv") + T(8, 164, "sceau = clé privée", "ft-priv", "start") +
+      AR(92, 78, 150, 78) + R(150, 40, 110, 76) + T(205, 72, "bordereau", "") + T(205, 90, "+ signature", "ft-priv") +
+      AR(260, 78, 326, 78) + R(326, 50, 86, 56) + T(369, 74, "Banque", "f-b") + T(369, 92, "vérifie", "f-s") +
+      KEY(300, 132, "f-pub") + T(412, 164, "empreinte publique", "ft-pub", "end") + T(412, 184, "✔ signature authentique", "ft-ok", "end"))
+  }),
+  echange: (x) => {
+    const a = x.a, A = x.A, B = x.B, S = x.S == null ? "?" : x.S;
+    return {
+      cap: "Diffie-Hellman : chacun garde un secret (en orange) et n'envoie que sa valeur publique (en bleu). Ève voit les valeurs publiques, jamais les secrets, et les deux côtés retombent sur le même nombre.",
+      svg: SVG(250, "Échange de clés Diffie-Hellman",
+        R(8, 14, 130, 150) + T(73, 34, "Toi (Alice)", "f-b") + T(73, 60, "secret a = " + a, "ft-priv") + T(73, 77, "(jamais dit)", "f-s") +
+        T(73, 112, "A = 5^" + a + " mod 23", "ft-pub") + T(73, 130, "= " + A, "ft-pub f-b") +
+        R(282, 14, 130, 150) + T(347, 34, "Hellman", "f-b") + T(347, 60, "secret b = ?", "ft-priv") + T(347, 77, "(jamais dit)", "f-s") +
+        T(347, 112, "B = 5^b mod 23", "ft-pub") + T(347, 130, "= " + B, "ft-pub f-b") +
+        T(210, 36, "publics :", "f-s") + T(210, 52, "p = 23   g = 5", "") +
+        AR(138, 96, 282, 96, "f-pub") + T(210, 90, "A = " + A, "ft-pub") + AR(282, 144, 138, 144, "f-pub") + T(210, 138, "B = " + B, "ft-pub") +
+        R(120, 178, 180, 46, "f-bad") + T(210, 196, "Ève entend seulement", "ft-bad") + T(210, 213, "p, g, " + A + " et " + B, "ft-bad") +
+        T(73, 192, "B^a mod 23", "") + T(73, 210, "= " + S, "ft-ok f-b") + T(347, 192, "A^b mod 23", "") + T(347, 210, "= " + S, "ft-ok f-b") +
+        T(210, 244, "même secret commun des deux côtés", "f-s"))
+    };
+  },
+  chaine: () => ({
+    cap: "Chaque maillon est signé par celui du dessus. Le navigateur remonte jusqu'à une autorité racine qu'il connaît déjà (son registre).",
+    svg: SVG(232, "Chaîne de confiance d'un certificat",
+      R(8, 12, 250, 50, "f-ok") + T(133, 34, "Chancellerie Royale", "f-b") + T(133, 51, "racine : dans ton registre", "f-s") +
+      AR(133, 62, 133, 90) + T(150, 80, "signe", "f-s", "start") +
+      R(8, 90, 250, 50) + T(133, 112, "Sous-Chancellerie du Port", "f-b") + T(133, 129, "autorité intermédiaire", "f-s") +
+      AR(133, 140, 133, 168) + T(150, 158, "signe", "f-s", "start") +
+      R(8, 168, 250, 50, "f-pub") + T(133, 190, "banque-du-port", "f-b") + T(133, 207, "certificat : nom + clé publique + dates", "f-s") +
+      R(280, 12, 132, 206) + T(346, 36, "Le navigateur", "f-b") + T(346, 53, "vérifie :", "f-s") +
+      T(292, 90, "1. le nom", "", "start") + T(400, 90, "✔", "ft-ok", "end") +
+      T(292, 118, "2. les dates", "", "start") + T(400, 118, "✔", "ft-ok", "end") +
+      T(292, 146, "3. la chaîne", "", "start") + T(400, 146, "✔", "ft-ok", "end") +
+      T(346, 194, "→ confiance", "ft-ok f-b"))
+  }),
+  mitm: (blocked) => ({
+    cap: blocked
+      ? "Le certificat de Mallory ne remonte à aucune autorité connue : la connexion est refusée avant que la lettre parte."
+      : "Mallory fait un échange chiffré avec Alice ET un autre avec la banque. Tout est « sécurisé »… mais elle lit tout au milieu.",
+    svg: SVG(250, "Attaque de l'homme du milieu",
+      R(8, 84, 76, 50) + T(46, 114, "Alice", "f-b") + R(172, 84, 76, 50, "f-bad") + T(210, 114, "Mallory", "f-b ft-bad") + R(336, 84, 76, 50) + T(374, 114, "Banque", "f-b") +
+      AR(84, 102, 172, 102, blocked ? "f-bad" : "f-pub", true) + AR(248, 102, 336, 102, blocked ? "f-dash f-ln" : "f-pub", true) +
+      LOCK(116, 54, blocked ? "f-priv" : "f-pub") + T(128, 40, "cadenas de Mallory", blocked ? "ft-bad" : "ft-pub") +
+      LOCK(280, 54, "f-pub") + T(292, 40, "cadenas banque", "ft-pub") +
+      (blocked ? `<text x="128" y="132" text-anchor="middle" class="f-t ft-bad" style="font-size:22px;font-weight:700">✗</text>` : "") +
+      T(210, 156, "lit tout en clair", "ft-bad") + T(210, 172, blocked ? "(bloquée)" : "puis rechiffre", "f-s") +
+      T(210, 206, blocked ? "Certificat refusé : aucune autorité" : "Alice croit parler à la banque :", blocked ? "ft-ok" : "ft-bad") +
+      T(210, 224, blocked ? "du registre n'a signé ce cadenas." : "le cadenas s'affiche, mais c'est le mauvais.", blocked ? "ft-ok" : "ft-bad"))
+  }),
+  handshake: () => {
+    const row = (y, dir, n, title, sub, enc) => {
+      const c = enc ? "f-pub" : "";
+      const a = dir === ">" ? AR(70, y, 350, y, c) : dir === "<" ? AR(350, y, 70, y, c) : AR(70, y, 350, y, c, true);
+      return a + T(210, y - 17, n + ". " + title, "f-b") + T(210, y - 5, sub, "f-s");
+    };
+    return {
+      cap: "Le client parle en premier. Dès le ServerHello, les deux côtés ont le secret et tout est chiffré (en bleu). Les Finished confirment que personne n'a rien modifié.",
+      svg: SVG(340, "Handshake TLS 1.3",
+        R(20, 6, 100, 26) + T(70, 24, "Client", "f-b") + R(300, 6, 100, 26) + T(350, 24, "Serveur", "f-b") +
+        `<line x1="70" y1="32" x2="70" y2="332" class="f-ln f-dash"/><line x1="350" y1="32" x2="350" y2="332" class="f-ln f-dash"/>` +
+        row(66, ">", 1, "ClientHello", "suites acceptées + sa moitié DH", false) +
+        row(104, "<", 2, "ServerHello", "suite choisie + sa moitié DH", false) +
+        `<line x1="20" y1="124" x2="400" y2="124" class="f-ln f-pub f-dash"/>` + T(210, 120, "", "") + T(400, 138, "chiffré à partir d'ici", "ft-pub f-s", "end") +
+        row(168, "<", 3, "Certificate + Verify", "identité + signature", true) +
+        row(208, "<", 4, "Finished", "résumé de tout l'échange", true) +
+        row(248, ">", 5, "Finished", "idem côté client", true) +
+        row(296, "x", 6, "Données applicatives", "chiffrées avec la clé de session", true))
+    };
+  }
+};
+const FIG_ALIAS = { chiffrement: ["chiffrement", "cadenas", "asymetrique", "cles"], signature: ["signature", "sceau"], echange: ["echange", "diffie", "hellman", "dh", "peintres"], chaine: ["chaine", "certificat", "confiance"], mitm: ["mitm", "mallory", "homme"], handshake: ["handshake", "poignee", "protocole"] };
+
+function fig(name, arg) {
+  S.figs = S.figs || [];
+  const d = FIGS[name](arg);
+  const el = document.createElement("figure"); el.className = "fig";
+  el.innerHTML = d.svg + `<figcaption>${d.cap.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</figcaption>`;
+  logEl.append(el); logEl.scrollTop = logEl.scrollHeight;
+  if (!S.figs.includes(name)) S.figs.push(name);
+}
+function schemaCmd(txt) {
+  const have = S.figs || [];
+  if (!txt) {
+    out(have.length ? "Schémas débloqués : " + have.map(n => "`schema " + n + "`").join(" · ") : "Aucun schéma débloqué pour l'instant : ils apparaissent quand tu réussis une étape.", "sys"); return;
+  }
+  const name = Object.keys(FIG_ALIAS).find(n => FIG_ALIAS[n].some(a => a.startsWith(txt) || txt.startsWith(a)));
+  if (!name || !have.includes(name)) { out("Ce schéma n'est pas (encore) débloqué. `schema` liste ceux que tu as.", "err"); return; }
+  if (name === "echange") fig(name, dhArgs()); else if (name === "mitm") fig(name, !!f().malloryDone); else fig(name);
+}
+function dhArgs() { const a = S.a || 6; return { a, A: modpow(G, a, P), B: B_PUB, S: f().key ? f().secretVal : null }; }
 
 /* ============ Interface ============ */
 function renderBar() {
@@ -763,6 +894,7 @@ function start() {
   out("Commence par `parler ada`.", "sys");
 }
 
+document.body.insertAdjacentHTML("beforeend", '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-mk"/></marker></defs></svg>');
 const saved = load();
 if (saved) { S = saved; out("Partie reprise. (`recommencer` pour tout effacer.)", "sys"); describe(); }
 else start();

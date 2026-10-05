@@ -154,10 +154,10 @@
     if (!(x.done.compte && x.done.tache && x.done.agent)) return "retire";
     if (!patchOK() || !x.done.patch) return "patch";
     if (!secOK() || !x.done.secrets) return "secrets";
+    if (!x.told.membres) return "notifM";
     if (!x.restored) return "restore";
     if (x.reprise < 100) return "reprise";
     if (!x.monitored) return "surveil";
-    if (!x.told.membres) return "notifM";
     if (!x.retex) return "retex";
     if (!x.end) return "adopt";
     return "fin";
@@ -189,7 +189,7 @@
     restore: () => ["Restaure les données. Choisis une sauvegarde antérieure à l'intrusion (date relevée sur le disque).", "`restaurer` liste les sauvegardes ; puis `restaurer 1` (lun. 01:00) : l'intrusion date de lun. 22:47."],
     reprise: () => ["Remets en service par paliers.", "`reprendre 10`, puis `reprendre 50`, puis `reprendre 100`."],
     surveil: () => ["Surveillance renforcée avant de crier victoire. Au SOC.", "`surveiller`"],
-    notifM: () => ["Les membres dont les données ont fui doivent être informés (risque élevé), avant toute presse, par la voix du porte-parole.", "`aller ouest` (bureau), `notifier membres`."],
+    notifM: () => ["Les membres dont les données ont fui doivent être informés sans tarder (risque élevé), avant toute presse, par la voix du porte-parole. Écris au bureau juridique, quand tu peux dire ce qui est fait.", "`aller ouest` (bureau), `notifier membres`."],
     retex: () => ["La crise est finie. Retour à la cellule pour le retour d'expérience.", "`retex` (à la cellule)."],
     adopt: () => ["Choisis trois actions qui corrigent les causes systémiques, pas des coupables.", "`adopter 1`, `adopter 3`, `adopter 4` (ou `adopter 6`)."],
     fin: () => ["Gestion d'incident terminée. Relis ton carnet.", "`carnet`"],
@@ -222,14 +222,14 @@
   /* ---------- commandes ---------- */
   function statusCmd() {
     const x = F(), r = remain();
-    const ev = (k) => x.img[k] ? (x.img[k].stale ? "capturée (dégradée)" : "capturée") : x.lost[k] ? "PERDUE" : "à capturer";
+    const ev = (k) => { const e = k === "memoire" ? "e" : ""; return x.img[k] ? (x.img[k].stale ? "capturé" + e + " (dégradé" + e + ")" : "capturé" + e) : x.lost[k] ? "PERDU" + e.toUpperCase() : "à capturer"; };
     code([
       `Heure          : ${clk(x.t)}   (alerte + ${dur(x.t)})`,
       `Phase          : ${PH[phaseIdx()]}`,
       `Gravité        : ${x.sev ? x.sev + " / 4" : "non qualifiée"}`,
       `Registre       : ${mstate("registre")}${x.spread ? "   Sauvegardes : " + mstate("sauvegardes") : ""}`,
       `Fiches exposées: ${expShow()} / ${TOTAL}  ${x.expFinal !== undefined ? "(fuite arrêtée)" : "(la fuite continue : ~" + RATE + " fiches/min)"}`,
-      `Preuves        : mémoire ${ev("memoire")} · disque ${x.lost.disque ? "PERDU" : ev("disque")}`,
+      `Preuves        : mémoire ${ev("memoire")} · disque ${ev("disque")}`,
       `Notification   : ${r === null ? "délai 72 h pas encore déclenché (aucune fuite confirmée)" : x.told.autorite ? "autorité notifiée " + clk(x.autT) : "il reste " + (r >= 0 ? dur(r) : "0 (dépassé de " + dur(-r) + ")") + " sur 72 h"}`,
       `Confiance      : direction ${x.tr.direction} · équipe ${x.tr.equipe} · membres ${x.tr.membres} · autorité ${x.tr.autorite}`,
     ].join("\n"));
@@ -257,7 +257,7 @@
     if (S.room === "soc") {
       const k = /flux|trafic|volume/.test(t) ? "flux" : /compte|svc|utilisateur/.test(t) ? "compte" : /adresse|ip|203/.test(t) ? "adresse" : /sauvegarde|backup/.test(t) ? "sauv" : null;
       if (!k) { out("Quelle piste ? `analyser flux` · `analyser compte` · `analyser adresse` · `analyser sauvegarde`.", "err"); return; }
-      const first = !x.seen[k]; x.seen[k] = true;
+      const first = !x.seen[k]; x.seen[k] = true; x.seen.alerte = true;
       if (k === "flux") {
         code("Volume sortant du serveur « registre » (7 jours)\n  moyenne  : 0,3 Mo / nuit\n  cette nuit depuis 02:10 : 6 fiches par minute vers 203.0.113.66\n  contenu : lignes (nom ; e-mail ; adresse) de la base des membres\n  sorties estimées à 03:00 : ~" + BASE + " fiches sur " + TOTAL);
         out("Ce ne sont pas des statistiques anonymes : ce sont des données personnelles de membres, qui quittent la Guilde. Impact élevé.", "err");
@@ -312,7 +312,7 @@
       x.sev = ok; adv(5);
       if (!x.evid) x.evid = !!(x.seen.flux && (x.seen.compte || x.seen.adresse)) && !x.badQual;
       if (first && !(x.seen.flux && (x.seen.compte || x.seen.adresse))) out("Tu as tapé juste, mais presque à l'aveugle : un bon chef de cellule s'appuie sur des indices.", "sys");
-      out(ok === 3 ? "Gravité 3 (majeur) : impact élevé (données personnelles de membres), un seul serveur touché pour l'instant. La cellule de crise est complète : direction informée, juriste prévenue, preuves préservées." : "Gravité 4 (critique) : impact élevé sur plusieurs systèmes. Toute l'organisation est mobilisée, la communication externe est préparée.", "ok");
+      out(ok === 3 ? "Gravité 3 (majeur) : impact élevé (données personnelles de membres), un seul serveur touché pour l'instant. On passe en mode cellule de crise complète : direction à informer, juriste à prévenir, preuves à préserver." : "Gravité 4 (critique) : impact élevé sur plusieurs systèmes. Toute l'organisation est mobilisée, la communication externe est préparée.", "ok");
       lg(`Incident qualifié : gravité ${ok}`, "qualifié gravité " + ok); note("qualif"); fig("gravite");
     } else if (n < ok) {
       x.badQual++; adv(30 * (ok - n));
@@ -388,12 +388,12 @@
     if (wm || both) {
       if (x.img.memoire) out("La mémoire est déjà copiée.", "sys");
       else if (!x.m.registre.on) { x.lost.memoire = true; out("Le serveur est éteint : la mémoire vive est vide, il n'y a plus rien à copier.", "err"); }
-      else { evNotice(); const stale = !!x.img.disque; x.img.memoire = { t: x.t, stale }; give("imgmem"); adv(15); out(`Mémoire vive copiée (${clk(x.t)})${stale ? " : mais le disque a été copié avant, 45 minutes pendant lesquelles la mémoire a évolué, la capture est dégradée" : " : c'est la plus volatile, capturée en premier"}. Image forensique créée.`, stale ? "err" : "ok"); lg(`Copie de la mémoire du registre${stale ? " (dégradée : disque copié avant)" : ""}`, "mémoire copiée"); x.evShown = true; note("preuves"); fig("volatilite"); }
+      else { evNotice(); const stale = !!x.img.disque; adv(15); x.img.memoire = { t: x.t, stale }; give("imgmem"); out(`Mémoire vive copiée (${clk(x.t)})${stale ? " : mais le disque a été copié avant, 45 minutes pendant lesquelles la mémoire a évolué, la capture est dégradée" : " : c'est la plus volatile, capturée en premier"}. Image forensique créée.`, stale ? "err" : "ok"); lg(`Copie de la mémoire du registre${stale ? " (dégradée : disque copié avant)" : ""}`, "mémoire copiée"); note("preuves"); if (!x.evShown) { x.evShown = true; fig("volatilite"); } }
     }
     if (wd || both) {
       if (x.img.disque) out("Le disque est déjà copié.", "sys");
       else if (x.lost.disque) out("Le disque a été reconstruit : il n'y a plus de trace à copier.", "err");
-      else { evNotice(); x.img.disque = { t: x.t }; give("imgdisque"); adv(45); out(`Disque copié bit à bit avec un bloqueur d'écriture (${clk(x.t)}, 45 minutes). Image forensique créée.`, "ok"); lg("Copie du disque du registre", "disque copié"); note("preuves"); fig("volatilite"); }
+      else { evNotice(); adv(45); x.img.disque = { t: x.t }; give("imgdisque"); out(`Disque copié bit à bit avec un bloqueur d'écriture (${clk(x.t)}, 45 minutes). Image forensique créée.`, "ok"); lg("Copie du disque du registre", "disque copié"); note("preuves"); if (!x.evShown) { x.evShown = true; fig("volatilite"); } }
     }
     if (x.img.memoire || x.img.disque) out("Étape suivante : au laboratoire, calcule l'empreinte (`hacher`) et consigne-la (`consigner`).", "sys");
   }
@@ -418,7 +418,7 @@
     adv(3);
     const e = { t: x.t, type: "hash", k, copy, h, tx: `${copy ? "copie" : "original"} ${EVN[k]} · SHA-256 ${h.slice(0, 16)}… · saisie par : chef de cellule` };
     x.cust.push(e);
-    out(`Consigné au registre de possession : ${clk(x.t)}, ${e.tx}.`, "ok"); lg(`Empreinte consignée (${copy ? "copie" : "original"} ${EVN[k]})`, "empreinte consignée"); note("preuves"); fig("custody");
+    out(`Consigné au registre de possession : ${clk(x.t)}, ${e.tx}.`, "ok"); lg(`Empreinte consignée (${copy ? "copie" : "original"} ${EVN[k]})`, "empreinte consignée (" + EVN[k] + ")"); note("preuves"); if (!x.custShown) { x.custShown = true; fig("custody"); }
   }
   function controlCmd(c) {
     const x = F(), id = evTarget(c); if (!id) return;
@@ -440,8 +440,7 @@
     const hc = sha256(x.cp[k].c);
     code(`original : ${cons.h}\ncopie    : ${hc}`);
     out(hc === cons.h ? "Empreintes identiques : la copie est conforme. Tu analyseras la copie, et l'original reste scellé." : "Les empreintes diffèrent !", hc === cons.h ? "ok" : "err");
-    x.cust.push({ t: x.t, type: "copie", k, copy: true, tx: `copie de travail ${EVN[k]} créée, conforme à l'original (même empreinte)` }); lg(`Copie de travail créée (${EVN[k]}), empreinte identique`, "copie de travail");
-    fig("custody");
+    x.cust.push({ t: x.t, type: "copie", k, copy: true, tx: `copie de travail ${EVN[k]} créée, conforme à l'original (même empreinte)` }); lg(`Copie de travail créée (${EVN[k]}), empreinte identique`, "copie de travail (" + EVN[k] + ")");
   }
   function giveEv(item, who) {
     const x = F(), e = ents[item];
@@ -615,7 +614,7 @@
       if (!x.called.communication) { x.pen.voices = true; tr("membres", -8, "plusieurs voix sans porte-parole désigné : les messages se contredisent."); }
       if (x.told.autorite === undefined) { x.pen.order = true; tr("autorite", -8, "les membres sont informés avant elle."); }
       if (x.expFinal === undefined) { x.pen.incomplete = true; tr("membres", -5, "message prématuré : tu ne peux pas encore dire ce qui est stoppé."); }
-      code(`Objet : incident de sécurité sur les données des membres de la Guilde\n— Ce qui s'est passé : un accès non autorisé au registre, dans la nuit du 13 au 14 octobre.\n— Données concernées : nom, e-mail, adresse postale (pas de moyen de paiement).\n— Ce que nous avons fait : serveur isolé, accès de l'attaquant supprimés, autorité informée.\n— Ce que vous devez faire : méfiez-vous des messages inattendus se réclamant de la Guilde, ne cliquez sur aucun lien, changez vos mots de passe si vous les avez réutilisés.\n— Contact : ${x.porte || "(pas de porte-parole désigné)"}, porte-parole de la Guilde.`);
+      code(`Objet : incident de sécurité sur les données des membres de la Guilde\n— Ce qui s'est passé : un accès non autorisé au registre, dans la nuit du 13 au 14 octobre.\n— Données concernées : nom, e-mail, adresse postale (pas de moyen de paiement).\n— Ce que nous avons fait : ${eradDone() ? "serveur isolé, accès de l'attaquant supprimés, faille corrigée, mots de passe de service changés" : x.expFinal !== undefined ? "serveur isolé, analyse en cours" : "enquête en cours"}, autorité informée.\n— Ce que vous devez faire : méfiez-vous des messages inattendus se réclamant de la Guilde, ne cliquez sur aucun lien, changez vos mots de passe si vous les avez réutilisés.\n— Contact : ${x.porte ? x.porte + ", porte-parole de la Guilde" : "aucun porte-parole désigné"}.`);
       out("Message factuel : ce que l'on sait, ce qui est fait, ce que chacun doit faire.", "ok"); tr("membres", 8, "informés directement et franchement, avec des gestes concrets.");
       lg("Membres informés (article 34)", "membres informés"); note("comm"); return;
     }
@@ -703,7 +702,7 @@
     out("**L'horloge de la crise = le temps de détection et de réaction.** Les fiches sortaient à un rythme constant : chaque minute avant l'isolement a un coût mesurable. Les équipes mesurent ces délais (détection, qualification, confinement) pour s'améliorer. Mallory est l'intruse ; Ève, qui écoute, c'est tout le trafic sortant qu'on n'observait pas : l'adresse 203.0.113.66 (plage réservée à la documentation, donc fictive) était la destination d'un canal de commande et de contrôle.");
     out("**Isoler contre éteindre.** Isoler coupe la fuite et la propagation tout en gardant la machine sous tension ; éteindre efface la mémoire vive (processus, connexions, clés, identifiants chargés). La mémoire t'a appris ce que le disque ne disait pas : trois identifiants lus, dont celui de la sauvegarde. Nuance réelle : certains logiciels malveillants réagissent à la perte de réseau, et l'extinction peut être un bon choix une fois la mémoire copiée.");
     out("**L'ordre de volatilité (RFC 3227) et la chaîne de possession.** On capture d'abord ce qui disparaît le plus vite : registres et cache, mémoire, fichiers temporaires, disque, journaux distants, sauvegardes. On empreinte (SHA-256, ici réel) chaque image, on consigne qui l'a eue, quand et où, on travaille sur une copie dont l'empreinte est identique, et on contrôle que l'original n'a pas bougé. Ouvrir l'original en écriture modifie ses horodatages et ruine sa valeur probante.");
-    out("**L'éradication : trois choses.** La persistance (compte svc-maint, tâche maj-agent, programme agent.bin), la porte d'entrée (le panneau d'administration non corrigé) et les secrets lus (base, sauvegarde). Oublier l'une des trois, c'est être réinfecté. Bloquer 203.0.113.66 ne suffit pas : Mallory est revenue de 203.0.113.99 quand il restait une faille.");
+    out("**L'éradication : trois choses.** La persistance (compte svc-maint, tâche maj-agent, programme agent.bin), la porte d'entrée (le panneau d'administration non corrigé) et les secrets lus (base, sauvegarde). Oublier l'une des trois, c'est être réinfecté. Bloquer 203.0.113.66 ne suffit pas : si une faille ou un secret subsiste, Mallory revient d'une autre adresse (203.0.113.99 dans le jeu).");
     out("**La reprise.** On restaure depuis une sauvegarde antérieure à l'intrusion (lundi 22:47), pas la plus récente : une empreinte conforme prouve l'intégrité du fichier, pas sa propreté. On remet en service par paliers (10, 50, 100 %) pour limiter les dégâts d'un raté, puis on surveille avec des règles de détection construites sur l'incident.");
     out("**La communication et la loi.** Direction vite, équipe avant les rumeurs, un seul porte-parole, les personnes concernées avant la presse. Le RGPD impose de notifier l'autorité (en France, la CNIL) dans les 72 heures après la prise de connaissance (art. 33), d'informer les personnes si le risque est élevé (art. 34) et de documenter toute violation (art. 33.5). Le jeu calcule le délai restant à partir du moment où la fuite est confirmée.");
     out("**Le retour d'expérience sans coupable.** Chronologie factuelle, causes systémiques (correctif manquant, droits excessifs, détection tardive), quelques actions avec responsable et échéance. Sanctionner l'administrateur fait cacher les erreurs la fois suivante.");
@@ -729,7 +728,7 @@
       return {
         cap: "Ordre de volatilité (RFC 3227) : on capture d'abord ce qui disparaît le plus vite. Ici, la mémoire vive du registre passait avant son disque.",
         svg: SVG(252, "Ordre de volatilité des preuves",
-          rows.map((r, i) => { const y = 12 + i * 36, m = mark(i); return R(96, y, 314, 30, m && m[1] === "ft-ok" ? "f-ok" : m ? "f-bad" : "") + T(106, y + 13, (i + 1) + ". " + r[0], "f-b", "start") + T(106, y + 25, r[1], "f-s", "start") + (m ? T(400, y + 19, m[0], m[1] + " f-b", "end") : ""); }).join("") +
+          rows.map((r, i) => { const y = 12 + i * 36, m = mark(i); return R(96, y, 314, 30, m && m[1] === "ft-ok" ? "f-ok" : m ? "f-bad" : "") + T(106, y + 13, (i + 1) + ". " + r[0], "f-b", "start") + T(106, y + 25, r[1], "f-s", "start") + (m ? T(400, y + 25, m[0], m[1] + " f-b", "end") : ""); }).join("") +
           T(46, 10, "volatil", "f-s ft-bad") + AR(46, 226, 46, 24, "f-bad") + T(46, 244, "durable", "f-s ft-ok"))
       };
     },

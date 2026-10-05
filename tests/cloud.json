@@ -1,1 +1,11 @@
-[]
+["parler ada","dire client","dire fournisseur","dire client","dire fournisseur","dire client",
+"aller sud","aller est","facture","alerte 1.4","enqueter","aller ouest","aller nord","aller nord","scanner",
+"aller sud","aller sud","bloquer publications","ouvrir publications","bloquer registres","desactiver listage publications","chiffrer registres","chiffrer sauvegardes",
+"restreindre sg-admin 22 10.0.1.0/24","restreindre sg-base 3306 10.0.2.0/24","isoler base-1","metadonnees web-1","exiger jetons web-1","metadonnees web-1",
+"aller nord","aller ouest","renouveler deploy-bot","renouveler site-web","ranger site-web","revoquer racine","journaliser",
+"aller est","aller sud","aller est","purger ap-sud","facture",
+"aller ouest","aller nord","aller est","evaluer bob s3:DeleteObject registres-guilde/2024.csv","evaluer alice s3:PutObject registres-guilde/2024.csv",
+"politique ProtegeRegistres refuser s3:DeleteObject registres-guilde/*","attacher ProtegeRegistres bob","evaluer bob s3:DeleteObject registres-guilde/2024.csv",
+"evaluer alice s3:GetObject sauvegardes-guilde/2025.tar","evaluer alice s3:GetObject sauvegardes-guilde/2025.tar ip=10.0.5.9 mfa=oui",
+"elever stagiaire","generer stagiaire","adopter stagiaire","elever stagiaire",
+"aller ouest","aller nord","scanner","aller sud","parler ada"]

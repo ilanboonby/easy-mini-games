@@ -1,6 +1,8 @@
 # Port-443 Quest
 
-Vingt-trois aventures textuelles en français (à la Terminus) pour comprendre des concepts de cybersécurité réputés pénibles, chacune avec une vraie histoire, des puzzles, des schémas SVG qui se débloquent en jouant, un carnet de cours et un bilan final qui décode les analogies et liste les simplifications.
+Trente-sept aventures textuelles en français (à la Terminus) pour comprendre des concepts de cybersécurité réputés pénibles, chacune avec une vraie histoire, des puzzles, des schémas SVG qui se débloquent en jouant, un carnet de cours et un bilan final qui décode les analogies et liste les simplifications.
+
+Le tableau ci-dessous présente les 23 aventures initiales. Les 14 aventures supplémentaires sont accessibles depuis le menu de `index.html`.
 
 | # | Jeu | Concept | Fil rouge |
 |---|-----|---------|-----------|
@@ -34,6 +36,6 @@ Vingt-trois aventures textuelles en français (à la Terminus) pour comprendre d
 ## Organisation du code
 - `engine.js` / `engine.css` : moteur partagé (analyse des commandes, inventaire, indices, carnet, schémas, menu).
 - `games/*.js` : un fichier par jeu (lieux, personnages, puzzles, schémas, bilan).
-- `tests/` : un parcours complet par jeu (23), rejoué dans un navigateur par `node tests/run-all.js` (nécessite Playwright).
+- `tests/` : 37 parcours de jeu définis, rejoués dans un navigateur par `node tests/run-all.js` (nécessite Playwright). Les 16 autres fichiers JSON sont des emplacements réservés aux futurs jeux.
 
 Les prochaines idées sont dans [ROADMAP.md](ROADMAP.md).

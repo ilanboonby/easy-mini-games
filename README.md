@@ -39,3 +39,7 @@ Le tableau ci-dessous présente les 23 aventures initiales. Les 14 aventures sup
 - `tests/` : 37 parcours de jeu définis, rejoués dans un navigateur par `node tests/run-all.js` (nécessite Playwright). Les 16 autres fichiers JSON sont des emplacements réservés aux futurs jeux.
 
 Les prochaines idées sont dans [ROADMAP.md](ROADMAP.md).
+
+## Licence
+
+Ce projet est distribué sous la [licence MIT](LICENSE).
